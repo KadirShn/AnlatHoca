@@ -31,7 +31,15 @@ The mobile client communicates with the Cloudflare Worker API. The API will late
 - Never commit `.env` files containing secrets.
 - Shared API contracts belong in `packages/contracts`.
 - AI prompts belong in `packages/prompts` and must not be scattered through application code.
-- Validate external data before trusting it.
+- Validate external data before trusting it; API boundary schemas belong in `packages/contracts`.
+- Treat anonymous installation IDs as identifiers only, never as authentication or authorization.
+- Store installation identifiers with the platform secure-storage abstraction on native devices.
+- Treat every `EXPO_PUBLIC_` value as public client-bundle data and never place secrets in it.
+- Keep the mobile API base URL centralized; do not scatter environment-variable reads or endpoint origins.
+- Route mobile networking through the centralized API client; screens must not call `fetch` or backend URLs directly.
+- Runtime-validate every API response used by mobile with schemas from `packages/contracts`.
+- Return predictable shared JSON error envelopes from API routes and do not expose internal error details.
+- Do not display or log full installation identifiers in normal user-facing flows.
 - Prefer TypeScript strict mode.
 - Avoid `any` unless strongly justified.
 - Keep components small and reusable.

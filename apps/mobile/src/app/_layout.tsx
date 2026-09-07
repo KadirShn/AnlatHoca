@@ -1,11 +1,12 @@
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 
+import { AppBootstrapProvider } from "@/providers/app-bootstrap-provider";
 import { colors } from "@/theme";
 
 export default function RootLayout() {
   return (
-    <>
+    <AppBootstrapProvider>
       <Stack
         screenOptions={{
           animation: "slide_from_right",
@@ -32,6 +33,6 @@ export default function RootLayout() {
         />
       </Stack>
       <StatusBar style="dark" />
-    </>
+    </AppBootstrapProvider>
   );
 }

@@ -3,7 +3,12 @@ import Constants from "expo-constants";
 import type { ComponentProps } from "react";
 import { StyleSheet, View } from "react-native";
 
-import { AppText, ScreenContainer, SectionHeader } from "@/components";
+import {
+  AppText,
+  ConnectionStatusCard,
+  ScreenContainer,
+  SectionHeader,
+} from "@/components";
 import { colors, radius, spacing } from "@/theme";
 
 type SettingsIcon = ComponentProps<typeof Ionicons>["name"];
@@ -40,6 +45,11 @@ export function SettingsScreen() {
         <AppText tone="muted">
           Uygulama bilgilerini ve gelecekte sunulacak seçenekleri görüntüle.
         </AppText>
+      </View>
+
+      <View style={styles.section}>
+        <SectionHeader title="Bağlantı" />
+        <ConnectionStatusCard />
       </View>
 
       <View style={styles.section}>
