@@ -2,7 +2,7 @@
 
 Anlat Hoca is an AI-powered mobile study application being built with Expo and Cloudflare Workers.
 
-**This repository is currently in foundation stage.** It contains the monorepo structure, a temporary mobile screen, and two API health endpoints. AI, PDF analysis, lessons, notes, quizzes, study packs, authentication, and persistence are not implemented.
+**This repository is currently in foundation stage.** It contains the monorepo structure, mobile design system, Expo Router navigation shell, Turkish home experience, placeholder product flows, and two API health endpoints. AI, PDF analysis, lessons, notes, quizzes, study packs, authentication, and persistence are not implemented.
 
 ## Technology stack
 

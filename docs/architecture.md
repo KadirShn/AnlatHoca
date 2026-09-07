@@ -20,7 +20,7 @@ Shared request and response contracts live in `packages/contracts`. AI prompts a
 
 ## Current foundation
 
-- The mobile app contains only a temporary root screen.
+- The mobile app contains a light-theme design system, reusable UI primitives, a three-tab navigation shell, and non-functional placeholder screens for future flows.
 - The API exposes only `GET /` and `GET /health`.
 - No AI provider, document processing, authentication, or persistence is configured.
 - No Cloudflare resources are bound or provisioned.
