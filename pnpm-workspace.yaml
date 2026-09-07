@@ -1,0 +1,11 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+
+overrides:
+  react-native-worklets: 0.10.1
+
+allowBuilds:
+  esbuild: true
+  unrs-resolver: true
+  workerd: true

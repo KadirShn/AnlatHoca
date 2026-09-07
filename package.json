@@ -1,0 +1,16 @@
+{
+  "name": "anlat-hoca",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Anlat Hoca mobile study application monorepo",
+  "packageManager": "pnpm@11.18.0",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "dev:mobile": "pnpm --filter @anlat-hoca/mobile start",
+    "dev:api": "pnpm --filter @anlat-hoca/api dev",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "lint": "pnpm -r --if-present lint"
+  }
+}
