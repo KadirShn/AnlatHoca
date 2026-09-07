@@ -7,7 +7,7 @@
 - Corepack with pnpm 11.18.0 (the repository pins this version)
 - Expo Go or a local Android/iOS simulator for device development
 
-No Cloudflare login is required for local API development.
+No Cloudflare login or remote D1 database is required for local development.
 
 ## Install dependencies
 
@@ -16,6 +16,30 @@ From the repository root:
 ```powershell
 corepack pnpm install
 ```
+
+## Prepare the local D1 database
+
+Apply all pending migrations to Wrangler's local D1 database:
+
+```powershell
+corepack pnpm db:migrate:local
+```
+
+List pending local migrations:
+
+```powershell
+corepack pnpm db:migrations:list:local
+```
+
+Inspect persisted guest installations when useful:
+
+```powershell
+corepack pnpm --filter @anlat-hoca/api exec wrangler d1 execute DB --local --command "SELECT installation_id, created_at, last_seen_at FROM guest_installations ORDER BY created_at;"
+```
+
+Wrangler persists local binding data under `apps/api/.wrangler/`, which is ignored by Git. The checked-in `DB` binding omits a remote resource ID deliberately; Wrangler 4 provisions a local-only database for these commands. Do not run remote migration or deployment commands as part of normal local development.
+
+If a remote database is explicitly approved later, create it manually with `corepack pnpm --filter @anlat-hoca/api exec wrangler d1 create anlat-hoca-production`, then add the returned real `database_name` and `database_id` to `wrangler.jsonc`. Apply remote schema changes only through versioned migrations and only after separate approval.
 
 ## Configure the mobile API URL
 
@@ -41,11 +65,14 @@ If the variable is absent or invalid, the app remains navigable and Settings sho
 
 ## Start the API
 
+Run migrations first, then start the Worker:
+
 ```powershell
+corepack pnpm db:migrate:local
 corepack pnpm dev:api
 ```
 
-Wrangler serves the Worker on port 8787 without requiring login. Local checks:
+Wrangler serves the Worker with its local D1 binding on port 8787 without requiring login. Local checks:
 
 ```powershell
 Invoke-RestMethod http://localhost:8787/
@@ -68,6 +95,7 @@ The Expo CLI displays options for Expo Go, Android, iOS (macOS required for the 
 ```powershell
 corepack pnpm typecheck
 corepack pnpm lint
+corepack pnpm --filter @anlat-hoca/mobile exec expo install --check
 corepack pnpm --filter @anlat-hoca/mobile exec pnpm dlx expo-doctor@latest
 corepack pnpm --filter @anlat-hoca/api build
 ```

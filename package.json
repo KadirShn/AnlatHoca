@@ -10,6 +10,8 @@
   "scripts": {
     "dev:mobile": "pnpm --filter @anlat-hoca/mobile start",
     "dev:api": "pnpm --filter @anlat-hoca/api dev",
+    "db:migrate:local": "pnpm --filter @anlat-hoca/api db:migrate:local",
+    "db:migrations:list:local": "pnpm --filter @anlat-hoca/api db:migrations:list:local",
     "typecheck": "pnpm -r --if-present typecheck",
     "lint": "pnpm -r --if-present lint"
   }

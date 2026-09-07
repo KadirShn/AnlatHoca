@@ -13,7 +13,7 @@ Anlat Hoca is an AI-powered React Native study application. The repository is cu
 - Database: Cloudflare D1
 - AI: provider-based architecture; Gemini is planned as the V1 provider
 
-The mobile client communicates with the Cloudflare Worker API. The API will later coordinate AI providers and D1. Gemini and D1 are not integrated yet.
+The mobile client communicates with the Cloudflare Worker API. The API accesses D1 through a repository layer and will later coordinate AI providers. Gemini is not integrated yet; no production D1 database is provisioned.
 
 ## Workspace boundaries
 
@@ -54,6 +54,11 @@ The mobile client communicates with the Cloudflare Worker API. The API will late
 - Prefer simple solutions over premature infrastructure.
 - Update documentation when architecture changes.
 - Do not add cloud bindings or provision cloud resources without an approved requirement.
+- Route all D1 access through a focused data-access or repository layer.
+- Use prepared, parameterized D1 statements for every dynamic value; never interpolate request data into SQL.
+- Every database schema change requires a sequential, versioned migration.
+- Never mutate a production database schema manually outside the migration workflow.
+- Store no more user or device data than the current approved feature requires.
 
 ## Working expectations
 

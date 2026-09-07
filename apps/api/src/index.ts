@@ -9,12 +9,31 @@ import { Hono } from "hono";
 import { bodyLimit } from "hono/body-limit";
 import { cors } from "hono/cors";
 
+import { assertDatabaseAvailable } from "./data/database-health";
+import { D1InstallationRepository } from "./data/installation-repository";
+import { bootstrapGuestSession } from "./services/guest-session-service";
+
 const app = new Hono<{ Bindings: Env }>();
 
 const errorResponse = (
   code: ApiErrorResponse["error"]["code"],
   message: string,
 ): ApiErrorResponse => ({ error: { code, message } });
+
+const logOperationalError = (operation: string, error: unknown) => {
+  console.error(
+    JSON.stringify({
+      event: "operation_failed",
+      operation,
+      errorName: error instanceof Error ? error.name : "UnknownError",
+      errorMessage:
+        error instanceof Error ? error.message : "Unknown database error",
+    }),
+  );
+};
+
+const internalErrorResponse = () =>
+  errorResponse("INTERNAL_ERROR", "İşlem şu anda tamamlanamadı.");
 
 app.use(
   "*",
@@ -35,9 +54,15 @@ app.get("/", (context) => {
   return context.json(response);
 });
 
-app.get("/health", (context) => {
-  const response = { status: "healthy" } satisfies ApiHealthResponse;
-  return context.json(response);
+app.get("/health", async (context) => {
+  try {
+    await assertDatabaseAvailable(context.env.DB);
+    const response = { status: "healthy" } satisfies ApiHealthResponse;
+    return context.json(response);
+  } catch (error) {
+    logOperationalError("database_health", error);
+    return context.json(internalErrorResponse(), 503);
+  }
 });
 
 app.post(
@@ -68,13 +93,18 @@ app.post(
       );
     }
 
-    const response = {
-      installationId: result.data.installationId,
-      sessionType: "guest",
-      status: "ready",
-    } satisfies GuestSessionResponse;
+    try {
+      const repository = new D1InstallationRepository(context.env.DB);
+      const response = await bootstrapGuestSession(
+        repository,
+        result.data.installationId,
+      );
 
-    return context.json(response);
+      return context.json(response satisfies GuestSessionResponse);
+    } catch (error) {
+      logOperationalError("guest_installation_touch", error);
+      return context.json(internalErrorResponse(), 500);
+    }
   },
 );
 
@@ -91,11 +121,8 @@ app.notFound((context) =>
 );
 
 app.onError((error, context) => {
-  console.error("Unhandled API error", error);
-  return context.json(
-    errorResponse("INTERNAL_ERROR", "Beklenmeyen bir hata oluştu."),
-    500,
-  );
+  logOperationalError("unhandled_request", error);
+  return context.json(internalErrorResponse(), 500);
 });
 
 export default app;
