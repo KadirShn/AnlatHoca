@@ -6,7 +6,7 @@ Anlat Hoca is an AI-powered mobile study assistant. It is intended to help learn
 
 ## V1 objectives
 
-The planned V1 will let a learner select an educational PDF, upload it through a future backend flow, review extracted topics and important sections, and study from generated lessons and detailed notes. Lessons are expected to support 10, 30, and 60 minute formats and presentation-style viewing. Quizzes, questions to an AI teacher, and prepared TYT/KPSS study packs are also planned.
+The V1 product direction lets a learner select an educational PDF, upload it through the backend, review extracted topics and important sections, and later study from generated lessons and detailed notes. Lessons are expected to support 10, 30, and 60 minute formats and presentation-style viewing. Quizzes, questions to an AI teacher, and prepared TYT/KPSS study packs are also planned.
 
 Only PDF transfer and document analysis are currently implemented; the remaining items are product objectives.
 

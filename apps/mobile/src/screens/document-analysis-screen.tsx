@@ -27,7 +27,9 @@ export function DocumentAnalysisScreen() {
   const { documentId } = useLocalSearchParams<{
     documentId?: string | string[];
   }>();
-  const documentResult = documentIdSchema.safeParse(documentId);
+  const routeDocumentId = Array.isArray(documentId) ? undefined : documentId;
+  const documentResult = documentIdSchema.safeParse(routeDocumentId);
+  const validDocumentId = documentResult.success ? documentResult.data : null;
   const [attempt, setAttempt] = useState(0);
   const [state, setState] = useState<AnalysisScreenState>({
     status: "loading",
@@ -36,22 +38,16 @@ export function DocumentAnalysisScreen() {
   useEffect(() => {
     let active = true;
 
-    if (!documentResult.success) {
-      setState({
-        status: "error",
-        message: "Belge analizi için geçerli bir belge bulunamadı.",
-      });
+    if (!validDocumentId) {
       return () => {
         active = false;
       };
     }
 
-    setState({ status: "loading" });
-
     void getOrCreateInstallationId()
       .then((installationId) =>
         getDocumentAnalysis({
-          documentId: documentResult.data,
+          documentId: validDocumentId,
           installationId,
         }),
       )
@@ -75,9 +71,16 @@ export function DocumentAnalysisScreen() {
     return () => {
       active = false;
     };
-  }, [attempt, documentId]);
+  }, [attempt, validDocumentId]);
 
-  if (state.status === "loading") {
+  const screenState: AnalysisScreenState = validDocumentId
+    ? state
+    : {
+        status: "error",
+        message: "Belge analizi için geçerli bir belge bulunamadı.",
+      };
+
+  if (screenState.status === "loading") {
     return (
       <ScreenContainer
         contentContainerStyle={styles.centered}
@@ -94,7 +97,7 @@ export function DocumentAnalysisScreen() {
     );
   }
 
-  if (state.status === "error") {
+  if (screenState.status === "error") {
     return (
       <ScreenContainer
         contentContainerStyle={styles.centered}
@@ -110,11 +113,14 @@ export function DocumentAnalysisScreen() {
         <AppText style={styles.centerText} variant="heading3">
           Analiz gösterilemedi
         </AppText>
-        <InlineMessage message={state.message} tone="danger" />
-        {documentResult.success ? (
+        <InlineMessage message={screenState.message} tone="danger" />
+        {validDocumentId ? (
           <AppButton
             label="Tekrar Dene"
-            onPress={() => setAttempt((current) => current + 1)}
+            onPress={() => {
+              setState({ status: "loading" });
+              setAttempt((current) => current + 1);
+            }}
           />
         ) : null}
         <AppButton
@@ -126,7 +132,7 @@ export function DocumentAnalysisScreen() {
     );
   }
 
-  const { analysis } = state;
+  const { analysis } = screenState;
 
   return (
     <ScreenContainer edges={["left", "right", "bottom"]}>

@@ -59,7 +59,7 @@ export function DocumentReadyScreen() {
       contentContainerStyle={styles.content}
       edges={["left", "right", "bottom"]}
     >
-      <View accessibilityRole="summary" style={styles.card}>
+      <View style={styles.card}>
         <View style={styles.iconContainer}>
           <Ionicons color={colors.success} name="checkmark-circle" size={44} />
         </View>
