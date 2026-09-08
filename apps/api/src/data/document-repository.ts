@@ -56,8 +56,14 @@ export class D1DocumentRepository implements DocumentRepository {
            provider_file_name,
            provider_file_uri,
            provider_expires_at,
-           status
-         ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)`,
+           status,
+           created_at,
+           updated_at
+         ) VALUES (
+           ?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10,
+           strftime('%Y-%m-%dT%H:%M:%fZ', 'now'),
+           strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+         )`,
       )
       .bind(
         input.id,

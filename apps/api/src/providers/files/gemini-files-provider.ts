@@ -18,7 +18,8 @@ type FetchImplementation = (
 export class GeminiFilesProvider implements TemporaryFileProvider {
   constructor(
     private readonly apiKey: string,
-    private readonly fetchImplementation: FetchImplementation = fetch,
+    private readonly fetchImplementation: FetchImplementation = (input, init) =>
+      fetch(input, init),
   ) {}
 
   async uploadPdf(input: UploadPdfInput): Promise<UploadedProviderFile> {

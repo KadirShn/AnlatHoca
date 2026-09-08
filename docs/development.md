@@ -27,7 +27,7 @@ GEMINI_API_KEY=replace_with_your_gemini_api_key
 
 Without the local key, the Worker still starts and its root, health, and session endpoints work. A valid PDF upload returns the structured `AI_NOT_CONFIGURED` response.
 
-The non-secret `GEMINI_ANALYSIS_MODEL` Worker variable defaults to `gemini-2.5-flash` in `wrangler.jsonc`. Change that one server-side setting to test an approved compatible model; never expose it through mobile configuration.
+The non-secret `GEMINI_ANALYSIS_MODEL` Worker variable defaults to `gemini-3.6-flash` in `wrangler.jsonc`. Change that one server-side setting to test an approved compatible model; never expose it through mobile configuration.
 
 ## Install dependencies
 

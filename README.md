@@ -68,6 +68,6 @@ The original PDF is temporarily stored by Gemini and is not stored in D1 or R2. 
 
 For local upload development, copy `apps/api/.dev.vars.example` to the ignored `apps/api/.dev.vars` and provide your own server-side `GEMINI_API_KEY`. Never place that key in the mobile environment.
 
-Document analysis uses the server-only `GEMINI_ANALYSIS_MODEL` setting and defaults to `gemini-2.5-flash`. The first successful analysis is stored in D1 with its schema, prompt, and model version. Repeated analyze requests return that validated stored result rather than spending another model call.
+Document analysis uses the server-only `GEMINI_ANALYSIS_MODEL` setting and defaults to `gemini-3.6-flash`. The first successful analysis is stored in D1 with its schema, prompt, and model version. Repeated analyze requests return that validated stored result rather than spending another model call.
 
 The mobile results route reads only the cached D1 analysis. Opening the screen never triggers hidden analysis or regeneration.

@@ -1,4 +1,4 @@
-export const DEFAULT_GEMINI_ANALYSIS_MODEL = "gemini-2.5-flash";
+export const DEFAULT_GEMINI_ANALYSIS_MODEL = "gemini-3.6-flash";
 
 export function resolveGeminiAnalysisModel(
   configuredModel: string | undefined,

@@ -22,7 +22,8 @@ export class GeminiDocumentAnalysisProvider
   constructor(
     private readonly apiKey: string,
     readonly model: string,
-    private readonly fetchImplementation: FetchImplementation = fetch,
+    private readonly fetchImplementation: FetchImplementation = (input, init) =>
+      fetch(input, init),
   ) {}
 
   async analyzeDocument(
