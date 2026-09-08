@@ -2,7 +2,7 @@
 
 Anlat Hoca is an AI-powered mobile study application being built with Expo and Cloudflare Workers.
 
-The repository now supports PDF selection and transfer, temporary Gemini Files preparation, real AI document analysis, topic extraction, runtime-validated structured results, and D1 analysis caching. Lesson generation, quizzes, Ask Teacher, voice, authentication, permanent raw-file storage, and production deployment are not implemented.
+The repository supports PDF selection and transfer, temporary Gemini Files preparation, real AI document analysis, topic extraction, runtime-validated structured results, and D1 analysis caching. The Worker and D1 backend are deployed to Cloudflare production. Lesson generation, quizzes, Ask Teacher, voice, authentication, permanent raw-file storage, and store distribution are not implemented.
 
 ## Technology stack
 
@@ -12,7 +12,7 @@ The repository now supports PDF selection and transfer, temporary Gemini Files p
 - Cloudflare Workers, Hono, and Cloudflare D1
 - Zod schemas shared through `packages/contracts`
 - pnpm workspaces
-- Provider-based AI integration planned, with Gemini as the intended V1 provider
+- Provider-based AI integration, with Gemini as the deployed V1 provider
 
 ## Repository structure
 
@@ -51,6 +51,9 @@ corepack pnpm dev:mobile
 ```powershell
 corepack pnpm db:migrate:local
 corepack pnpm db:migrations:list:local
+corepack pnpm db:migrations:list:remote
+corepack pnpm db:migrate:remote
+corepack pnpm deploy:api
 corepack pnpm typecheck
 corepack pnpm lint
 corepack pnpm --filter @anlat-hoca/mobile exec pnpm dlx expo-doctor@latest

@@ -23,7 +23,7 @@ Replace the placeholder with your own key:
 GEMINI_API_KEY=replace_with_your_gemini_api_key
 ```
 
-`apps/api/.dev.vars` must never be committed. The key is Worker-only: do not place it in `apps/mobile/.env` or any `EXPO_PUBLIC_` variable. A future deployed Worker will use the approved `wrangler secret put GEMINI_API_KEY` workflow; do not configure remote secrets during ordinary local development.
+`apps/api/.dev.vars` must never be committed. The key is Worker-only: do not place it in `apps/mobile/.env` or any `EXPO_PUBLIC_` variable. The deployed Worker uses the Cloudflare secret binding `GEMINI_API_KEY`; do not modify remote secrets during ordinary local development.
 
 Without the local key, the Worker still starts and its root, health, and session endpoints work. A valid PDF upload returns the structured `AI_NOT_CONFIGURED` response.
 
@@ -73,9 +73,9 @@ corepack pnpm --filter @anlat-hoca/api exec wrangler d1 execute DB --local --com
 
 `document_analyses` contains only validated title/summary/topic output and version metadata. It does not contain the raw Gemini response, PDF bytes, prompt text, chain-of-thought, or provider credentials.
 
-Wrangler persists local binding data under `apps/api/.wrangler/`, which is ignored by Git. The checked-in `DB` binding omits a remote resource ID deliberately; Wrangler 4 provisions a local-only database for these commands. Do not run remote migration or deployment commands as part of normal local development.
+Wrangler persists local binding data under `apps/api/.wrangler/`, which is ignored by Git. Although the checked-in `DB` binding names the production database, `wrangler dev` and commands with `--local` use isolated local state. Do not run remote migration or deployment commands as part of normal local development.
 
-If a remote database is explicitly approved later, create it manually with `corepack pnpm --filter @anlat-hoca/api exec wrangler d1 create anlat-hoca-production`, then add the returned real `database_name` and `database_id` to `wrangler.jsonc`. Apply remote schema changes only through versioned migrations and only after separate approval.
+Production schema changes must continue to use sequential migration files and the explicit remote migration scripts above.
 
 ## Configure the mobile API URL
 
@@ -152,3 +152,33 @@ After changing `apps/api/wrangler.jsonc`, regenerate Worker runtime and binding 
 ```powershell
 corepack pnpm --filter @anlat-hoca/api generate-types
 ```
+
+## Production deployment
+
+The production API is deployed at:
+
+```text
+https://anlat-hoca-api.shnkadir.workers.dev
+```
+
+The Worker uses the remote `anlat-hoca-prod` D1 database and the Cloudflare secret binding `GEMINI_API_KEY`. The secret value is not stored in this repository or in mobile configuration.
+
+Before deployment, inspect pending remote migrations. Apply them only with the explicit remote scripts:
+
+```powershell
+corepack pnpm db:migrations:list:remote
+corepack pnpm db:migrate:remote
+corepack pnpm deploy:api
+```
+
+`--local` uses Wrangler state under `apps/api/.wrangler` and is the default for ordinary `wrangler dev` work. `--remote` targets the production D1 database. Never substitute one for the other casually.
+
+For local mobile testing against production, set the ignored `apps/mobile/.env` file to:
+
+```text
+EXPO_PUBLIC_API_BASE_URL=https://anlat-hoca-api.shnkadir.workers.dev
+```
+
+This URL is public client configuration, not a secret. Restart Expo after changing it. The local Worker does not need to run when this URL is selected.
+
+A future EAS production build must receive `EXPO_PUBLIC_API_BASE_URL` as build-time public configuration. Never provide `GEMINI_API_KEY` or any backend secret to EAS or the mobile bundle.

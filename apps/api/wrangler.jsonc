@@ -13,6 +13,8 @@
   "d1_databases": [
     {
       "binding": "DB",
+      "database_name": "anlat-hoca-prod",
+      "database_id": "145c15bd-c441-402f-ac25-50df4a0efdff",
       "migrations_dir": "migrations"
     }
   ],

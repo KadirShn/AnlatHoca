@@ -4,16 +4,16 @@ Future Codex agents must read this file before making any repository change. The
 
 ## Project
 
-Anlat Hoca is an AI-powered React Native study application. PDF transfer and runtime-validated document analysis are implemented; later learning features remain intentionally out of scope.
+Anlat Hoca is an AI-powered React Native study application. PDF transfer and runtime-validated document analysis are implemented and the backend is deployed to Cloudflare production; later learning features remain intentionally out of scope.
 
 ## Architecture
 
 - Mobile: React Native + Expo + TypeScript
 - Backend: Cloudflare Workers + Hono + TypeScript
 - Database: Cloudflare D1
-- AI: provider-based architecture; Gemini is planned as the V1 provider
+- AI: provider-based architecture; Gemini is the deployed V1 provider
 
-The mobile client communicates with the Cloudflare Worker API. The API accesses D1 through a repository layer and will later coordinate AI providers. Gemini is not integrated yet; no production D1 database is provisioned.
+The mobile client communicates with the deployed Cloudflare Worker API. The API accesses the production D1 database through a repository layer and coordinates Gemini through the provider abstraction. Local Wrangler development still uses local D1 state by default.
 
 ## Workspace boundaries
 
@@ -87,3 +87,13 @@ The mobile client communicates with the Cloudflare Worker API. The API accesses 
 - Use workspace scripts from the repository root when available.
 - Keep secrets in approved local or platform secret stores, never in tracked source or configuration.
 - Regenerate Worker bindings with `pnpm --filter @anlat-hoca/api generate-types` after changing `wrangler.jsonc`.
+
+## Production operations
+
+- Inspect existing Cloudflare resources before creation and never create ambiguous duplicates.
+- Review pending remote D1 migrations before production deployment or schema changes.
+- Use explicit local and remote D1 flags; ordinary local development must not mutate production.
+- Store deployed Worker credentials only as Cloudflare secrets; keep .dev.vars local and ignored.
+- Treat the Worker HTTPS URL as public configuration and provide it to mobile through EXPO_PUBLIC_API_BASE_URL.
+- Never place Gemini credentials in mobile configuration, EXPO_PUBLIC values, EAS, or documentation.
+- Keep production operations compatible with Cloudflare free limits unless paid services receive explicit approval.

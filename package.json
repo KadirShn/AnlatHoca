@@ -13,6 +13,9 @@
     "db:migrate:local": "pnpm --filter @anlat-hoca/api db:migrate:local",
     "db:migrations:list:local": "pnpm --filter @anlat-hoca/api db:migrations:list:local",
     "typecheck": "pnpm -r --if-present typecheck",
-    "lint": "pnpm -r --if-present lint"
+    "lint": "pnpm -r --if-present lint",
+    "deploy:api": "pnpm --filter @anlat-hoca/api run deploy",
+    "db:migrate:remote": "pnpm --filter @anlat-hoca/api db:migrate:remote",
+    "db:migrations:list:remote": "pnpm --filter @anlat-hoca/api db:migrations:list:remote"
   }
 }

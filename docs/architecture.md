@@ -1,6 +1,6 @@
 # Architecture
 
-## Intended system
+## Current production system
 
 ```text
 Expo mobile application
@@ -88,7 +88,7 @@ Expo Web uses an in-memory installation identifier because SecureStore is a nati
 
 ## D1 schema management
 
-Schema changes are versioned in `apps/api/migrations` and applied with Wrangler's D1 migration workflow. Local Wrangler state lives under the ignored `.wrangler/` directory. The checked-in binding intentionally has no fabricated remote database ID and supports local automatic provisioning. No remote D1 database or production Worker has been created.
+Schema changes are versioned in `apps/api/migrations` and applied with Wrangler's D1 migration workflow. Local Wrangler state lives under the ignored `.wrangler/` directory. The checked-in `DB` binding points to the production `anlat-hoca-prod` database. Ordinary `wrangler dev` and `--local` migration commands continue to use isolated local state; only explicit `--remote` operations target production.
 
 ## Current capabilities
 
@@ -96,7 +96,7 @@ Schema changes are versioned in `apps/api/migrations` and applied with Wrangler'
 - The mobile API URL has one source of truth and missing configuration degrades to a visible, retryable state without blocking navigation.
 - The API additionally exposes explicit analysis generation and cached-analysis read endpoints.
 - D1 persists guest installations, document metadata/internal provider references, and validated analysis results; it never stores raw PDFs.
-- Gemini document analysis is implemented. Lesson generation, quizzes, Ask Teacher, authentication, R2 storage, and production cloud deployment are not configured.
+- Gemini document analysis is deployed through the production Worker and D1. Lesson generation, quizzes, Ask Teacher, authentication, R2 storage, and store distribution are not configured.
 
 ## Later integrations
 
