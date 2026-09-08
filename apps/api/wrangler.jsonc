@@ -7,6 +7,9 @@
   "secrets": {
     "required": ["GEMINI_API_KEY"]
   },
+  "vars": {
+    "GEMINI_ANALYSIS_MODEL": "gemini-2.5-flash"
+  },
   "d1_databases": [
     {
       "binding": "DB",

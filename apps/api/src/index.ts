@@ -1,4 +1,5 @@
 import {
+  analyzeDocumentRequestSchema,
   guestSessionRequestSchema,
   type ApiErrorResponse,
   type ApiHealthResponse,
@@ -7,20 +8,31 @@ import {
 } from "@anlat-hoca/contracts";
 import { MAX_PDF_UPLOAD_BODY_BYTES } from "@anlat-hoca/config";
 import { Hono } from "hono";
+import type { Context } from "hono";
 import { bodyLimit } from "hono/body-limit";
 import { cors } from "hono/cors";
 
 import { assertDatabaseAvailable } from "./data/database-health";
+import { resolveGeminiAnalysisModel } from "./config/ai";
+import { D1DocumentAnalysisRepository } from "./data/document-analysis-repository";
 import { D1DocumentRepository } from "./data/document-repository";
 import { D1InstallationRepository } from "./data/installation-repository";
 import { GeminiFilesProvider } from "./providers/files/gemini-files-provider";
+import { GeminiDocumentAnalysisProvider } from "./providers/ai/gemini-document-analysis-provider";
+import {
+  analyzeDocument,
+  DocumentAnalysisError,
+  getStoredDocumentAnalysis,
+} from "./services/document-analysis-service";
 import {
   DocumentUploadError,
   uploadDocument,
 } from "./services/document-upload-service";
 import { bootstrapGuestSession } from "./services/guest-session-service";
 
-const app = new Hono<{ Bindings: Env }>();
+type AppEnvironment = { Bindings: Env };
+
+const app = new Hono<AppEnvironment>();
 
 const errorResponse = (
   code: ApiErrorResponse["error"]["code"],
@@ -212,6 +224,79 @@ app.post(
   },
 );
 
+app.post(
+  "/documents/:documentId/analyze",
+  bodyLimit({
+    maxSize: 1_024,
+    onError: (context) =>
+      context.json(errorResponse("INVALID_REQUEST", "Geçersiz istek."), 400),
+  }),
+  async (context) => {
+    const request = await readAnalysisRequest(context.req.raw);
+
+    if (!request.success) {
+      return context.json(
+        errorResponse("INVALID_REQUEST", "Geçersiz istek."),
+        400,
+      );
+    }
+
+    const apiKey = context.env.GEMINI_API_KEY?.trim();
+    const provider = apiKey
+      ? new GeminiDocumentAnalysisProvider(
+          apiKey,
+          resolveGeminiAnalysisModel(context.env.GEMINI_ANALYSIS_MODEL),
+        )
+      : undefined;
+
+    try {
+      const response = await analyzeDocument({
+        documentId: context.req.param("documentId"),
+        installationId: request.data.installationId,
+        documentRepository: new D1DocumentRepository(context.env.DB),
+        analysisRepository: new D1DocumentAnalysisRepository(context.env.DB),
+        analysisProvider: provider,
+      });
+
+      return context.json(response);
+    } catch (error) {
+      return handleAnalysisError(context, error, "document_analyze");
+    }
+  },
+);
+
+app.post(
+  "/documents/:documentId/analysis",
+  bodyLimit({
+    maxSize: 1_024,
+    onError: (context) =>
+      context.json(errorResponse("INVALID_REQUEST", "Geçersiz istek."), 400),
+  }),
+  async (context) => {
+    const request = await readAnalysisRequest(context.req.raw);
+
+    if (!request.success) {
+      return context.json(
+        errorResponse("INVALID_REQUEST", "Geçersiz istek."),
+        400,
+      );
+    }
+
+    try {
+      const response = await getStoredDocumentAnalysis({
+        documentId: context.req.param("documentId"),
+        installationId: request.data.installationId,
+        documentRepository: new D1DocumentRepository(context.env.DB),
+        analysisRepository: new D1DocumentAnalysisRepository(context.env.DB),
+      });
+
+      return context.json(response);
+    } catch (error) {
+      return handleAnalysisError(context, error, "document_analysis_read");
+    }
+  },
+);
+
 app.all("/session", (context) =>
   context.json(
     errorResponse("METHOD_NOT_ALLOWED", "Bu yöntem desteklenmiyor."),
@@ -221,6 +306,22 @@ app.all("/session", (context) =>
 );
 
 app.all("/documents/upload", (context) =>
+  context.json(
+    errorResponse("METHOD_NOT_ALLOWED", "Bu yöntem desteklenmiyor."),
+    405,
+    { Allow: "POST" },
+  ),
+);
+
+app.all("/documents/:documentId/analyze", (context) =>
+  context.json(
+    errorResponse("METHOD_NOT_ALLOWED", "Bu yöntem desteklenmiyor."),
+    405,
+    { Allow: "POST" },
+  ),
+);
+
+app.all("/documents/:documentId/analysis", (context) =>
   context.json(
     errorResponse("METHOD_NOT_ALLOWED", "Bu yöntem desteklenmiyor."),
     405,
@@ -247,4 +348,36 @@ function toFormValues(
   }
 
   return Array.isArray(value) ? value : [value];
+}
+
+async function readAnalysisRequest(request: Request) {
+  let body: unknown;
+
+  try {
+    body = await request.json();
+  } catch {
+    return { success: false } as const;
+  }
+
+  return analyzeDocumentRequestSchema.safeParse(body);
+}
+
+function handleAnalysisError(
+  context: Context<AppEnvironment>,
+  error: unknown,
+  operation: string,
+) {
+  if (error instanceof DocumentAnalysisError) {
+    if (error.status >= 500 && error.code !== "AI_NOT_CONFIGURED") {
+      logOperationalError(operation, error);
+    }
+
+    return context.json(
+      errorResponse(error.code, error.publicMessage),
+      error.status,
+    );
+  }
+
+  logOperationalError(operation, error);
+  return context.json(internalErrorResponse(), 500);
 }

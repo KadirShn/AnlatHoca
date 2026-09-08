@@ -1,9 +1,16 @@
 import {
+  analyzeDocumentRequestSchema,
+  analyzeDocumentResponseSchema,
   apiErrorResponseSchema,
+  documentIdSchema,
   documentUploadResponseSchema,
+  type AnalyzeDocumentResponse,
   type DocumentUploadResponse,
 } from "@anlat-hoca/contracts";
-import { DOCUMENT_UPLOAD_TIMEOUT_MS } from "@anlat-hoca/config";
+import {
+  DOCUMENT_ANALYSIS_TIMEOUT_MS,
+  DOCUMENT_UPLOAD_TIMEOUT_MS,
+} from "@anlat-hoca/config";
 import { fetch as expoFetch } from "expo/fetch";
 import { File } from "expo-file-system";
 
@@ -11,10 +18,16 @@ import { getApiConfiguration } from "@/config/api";
 import type { SelectedDocument } from "@/services/documents";
 
 import { ApiClientError } from "./api-error";
+import { requestJson } from "./client";
 
 interface UploadDocumentInput {
   installationId: string;
   document: SelectedDocument;
+}
+
+interface AnalyzeDocumentInput {
+  installationId: string;
+  documentId: string;
 }
 
 export async function uploadDocument({
@@ -102,4 +115,42 @@ export async function uploadDocument({
   } finally {
     clearTimeout(timeout);
   }
+}
+
+export function analyzeDocument({
+  installationId,
+  documentId,
+}: AnalyzeDocumentInput): Promise<AnalyzeDocumentResponse> {
+  const validatedDocumentId = documentIdSchema.parse(documentId);
+  const request = analyzeDocumentRequestSchema.parse({ installationId });
+
+  return requestJson(
+    "/documents/" + validatedDocumentId + "/analyze",
+    analyzeDocumentResponseSchema,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(request),
+    },
+    DOCUMENT_ANALYSIS_TIMEOUT_MS,
+  );
+}
+
+export function getDocumentAnalysis({
+  installationId,
+  documentId,
+}: AnalyzeDocumentInput): Promise<AnalyzeDocumentResponse> {
+  const validatedDocumentId = documentIdSchema.parse(documentId);
+  const request = analyzeDocumentRequestSchema.parse({ installationId });
+
+  return requestJson(
+    "/documents/" + validatedDocumentId + "/analysis",
+    analyzeDocumentResponseSchema,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(request),
+    },
+    DOCUMENT_ANALYSIS_TIMEOUT_MS,
+  );
 }

@@ -32,10 +32,11 @@ async function readJson(response: Response): Promise<unknown> {
   }
 }
 
-async function requestJson<T>(
+export async function requestJson<T>(
   path: string,
   schema: RuntimeSchema<T>,
   init?: RequestInit,
+  timeoutMs = REQUEST_TIMEOUT_MS,
 ): Promise<T> {
   const configuration = getApiConfiguration();
 
@@ -50,7 +51,7 @@ async function requestJson<T>(
   const timeout = setTimeout(() => {
     timedOut = true;
     controller.abort();
-  }, REQUEST_TIMEOUT_MS);
+  }, timeoutMs);
 
   try {
     const response = await fetch(`${configuration.baseUrl}${path}`, {

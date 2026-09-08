@@ -28,6 +28,10 @@ export default function RootLayout() {
           options={{ title: "Belge Hazır" }}
         />
         <Stack.Screen
+          name="document/[documentId]/analysis"
+          options={{ title: "Belge Analizi" }}
+        />
+        <Stack.Screen
           name="quick-study/index"
           options={{ title: "Sınava Az Kaldı" }}
         />

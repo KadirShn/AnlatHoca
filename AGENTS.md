@@ -4,7 +4,7 @@ Future Codex agents must read this file before making any repository change. The
 
 ## Project
 
-Anlat Hoca is an AI-powered React Native study application. The repository is currently in its foundation stage; product features are intentionally not implemented yet.
+Anlat Hoca is an AI-powered React Native study application. PDF transfer and runtime-validated document analysis are implemented; later learning features remain intentionally out of scope.
 
 ## Architecture
 
@@ -72,6 +72,13 @@ The mobile client communicates with the Cloudflare Worker API. The API accesses 
 - Never log uploaded file contents, raw multipart bodies, API keys, or full installation identifiers.
 - Keep file upload and AI generation as separate application concerns.
 - Clean up temporary provider resources after partial failures when practical without masking the original failure.
+- Runtime-validate every AI-generated result before trusting, persisting, or returning it.
+- Gemini structured output is untrusted until the shared Zod schema passes.
+- Keep every AI prompt in `packages/prompts` and persist prompt/schema versions with generated artifacts where appropriate.
+- Reuse valid persisted AI results instead of regenerating them without a product reason.
+- Never present document-relative importance as exam probability unless explicit source data supports that claim.
+- Keep AI output grounded in source material and do not turn unsupported assumptions into facts.
+- Never persist chain-of-thought or expose raw provider responses through public contracts.
 
 ## Working expectations
 

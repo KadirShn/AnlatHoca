@@ -2,7 +2,7 @@
 
 Anlat Hoca is an AI-powered mobile study application being built with Expo and Cloudflare Workers.
 
-**This repository is currently in foundation stage.** It contains the monorepo structure, mobile design system and navigation shell, PDF selection/upload, a typed API client, anonymous installation bootstrap, a Gemini Files provider, and local D1 metadata persistence. Gemini content analysis/generation, lessons, quizzes, study packs, authentication, and permanent file storage are not implemented. No production Cloudflare deployment or remote D1 database has been created.
+The repository now supports PDF selection and transfer, temporary Gemini Files preparation, real AI document analysis, topic extraction, runtime-validated structured results, and D1 analysis caching. Lesson generation, quizzes, Ask Teacher, voice, authentication, permanent raw-file storage, and production deployment are not implemented.
 
 ## Technology stack
 
@@ -64,6 +64,10 @@ See [docs/development.md](docs/development.md) for local D1 inspection, device-s
 
 The mobile flow accepts one PDF of at most 15 MiB through the operating system picker and sends it as multipart form data to `POST /documents/upload`. The Worker independently validates the installation UUID, request shape, size, MIME type, and `%PDF-` signature before using the Gemini Files API resumable upload protocol.
 
-The original PDF is temporarily stored by Gemini and is not stored in D1 or R2. D1 contains only safe display metadata and internal temporary provider references. The public mobile response contains no Gemini identifiers. Page counting and Gemini content analysis/generation are not implemented.
+The original PDF is temporarily stored by Gemini and is not stored in D1 or R2. D1 contains safe display metadata, internal temporary provider references, and validated analysis output. Public mobile responses contain no Gemini identifiers. Page counting and lesson/content generation beyond document analysis are not implemented.
 
 For local upload development, copy `apps/api/.dev.vars.example` to the ignored `apps/api/.dev.vars` and provide your own server-side `GEMINI_API_KEY`. Never place that key in the mobile environment.
+
+Document analysis uses the server-only `GEMINI_ANALYSIS_MODEL` setting and defaults to `gemini-2.5-flash`. The first successful analysis is stored in D1 with its schema, prompt, and model version. Repeated analyze requests return that validated stored result rather than spending another model call.
+
+The mobile results route reads only the cached D1 analysis. Opening the screen never triggers hidden analysis or regeneration.

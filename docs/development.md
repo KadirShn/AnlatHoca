@@ -27,6 +27,8 @@ GEMINI_API_KEY=replace_with_your_gemini_api_key
 
 Without the local key, the Worker still starts and its root, health, and session endpoints work. A valid PDF upload returns the structured `AI_NOT_CONFIGURED` response.
 
+The non-secret `GEMINI_ANALYSIS_MODEL` Worker variable defaults to `gemini-2.5-flash` in `wrangler.jsonc`. Change that one server-side setting to test an approved compatible model; never expose it through mobile configuration.
+
 ## Install dependencies
 
 From the repository root:
@@ -62,6 +64,14 @@ corepack pnpm --filter @anlat-hoca/api exec wrangler d1 execute DB --local --com
 ```
 
 The `documents` table contains metadata and temporary Gemini references only. It never contains PDF bytes or mobile URIs.
+
+Inspect persisted analysis product output and internal version metadata:
+
+```powershell
+corepack pnpm --filter @anlat-hoca/api exec wrangler d1 execute DB --local --command "SELECT document_id, schema_version, prompt_version, model, title, summary, topics_json, created_at, updated_at FROM document_analyses ORDER BY created_at;"
+```
+
+`document_analyses` contains only validated title/summary/topic output and version metadata. It does not contain the raw Gemini response, PDF bytes, prompt text, chain-of-thought, or provider credentials.
 
 Wrangler persists local binding data under `apps/api/.wrangler/`, which is ignored by Git. The checked-in `DB` binding omits a remote resource ID deliberately; Wrangler 4 provisions a local-only database for these commands. Do not run remote migration or deployment commands as part of normal local development.
 
@@ -122,7 +132,9 @@ Open **Hocam Şunu Anlat** and use the system document picker. The current flow 
 
 Selection remains screen-scoped. On **Devam Et**, the modern Expo `File` API and `expo/fetch` send multipart FormData without base64. The 120-second upload timeout is separate from ordinary eight-second JSON requests, and uploads are retried only when the user explicitly tries again.
 
-The Worker validates MIME, exact file size, installation UUID, and the `%PDF-` signature before uploading to temporary Gemini Files API storage. It does not parse page count or call a Gemini model. The Expo app config blocks legacy `READ_EXTERNAL_STORAGE` and `WRITE_EXTERNAL_STORAGE`; selection uses Android's system document picker instead.
+The Worker validates MIME, exact file size, installation UUID, and the `%PDF-` signature before uploading to temporary Gemini Files API storage. It does not parse page count. The Expo app config blocks legacy `READ_EXTERNAL_STORAGE` and `WRITE_EXTERNAL_STORAGE`; selection uses Android's system document picker instead.
+
+After upload, press **Belgeyi Analiz Et** to make the one explicit analysis request. The Worker checks ownership, returns cached output when present, polls temporary-file readiness for a bounded period, calls the configured Gemini model, validates the structured result, and stores it in D1. Reopening the results route reads the D1 cache and never calls Gemini automatically. Analysis requests use a 120-second mobile timeout and remain user-retry driven.
 
 ## Quality checks
 

@@ -8,14 +8,13 @@ Anlat Hoca is an AI-powered mobile study assistant. It is intended to help learn
 
 The planned V1 will let a learner select an educational PDF, upload it through a future backend flow, review extracted topics and important sections, and study from generated lessons and detailed notes. Lessons are expected to support 10, 30, and 60 minute formats and presentation-style viewing. Quizzes, questions to an AI teacher, and prepared TYT/KPSS study packs are also planned.
 
-These are product objectives, not functionality present in the current foundation.
+Only PDF transfer and document analysis are currently implemented; the remaining items are product objectives.
 
-The current foundation selects one PDF up to 15 MiB, uploads it through the Anlat Hoca Worker to temporary Gemini Files API storage, and stores only document metadata and the internal temporary provider reference in D1. It does not store the original PDF, parse pages, or analyze/generate content. Other document formats are not selectable. Page-count enforcement will be added with the analysis boundary rather than through a heavy mobile PDF parser.
+The current V1 flow selects one PDF up to 15 MiB, uploads it through the Anlat Hoca Worker to temporary Gemini Files API storage, and stores only document metadata and the internal temporary provider reference in D1. The user can explicitly start a Turkish document analysis that produces a concise summary, meaningful topics, document-relative importance, conceptual difficulty, and key learning points. The runtime-validated result is cached in D1. The original PDF is not stored by Anlat Hoca.
 
 ## Features planned for later
 
-- Page-count validation and document processing
-- Document analysis and topic extraction
+- Page-count policy enforcement
 - Time-boxed lesson generation
 - Slide presentations and detailed notes
 - Quizzes and answer review
@@ -23,6 +22,8 @@ The current foundation selects one PDF up to 15 MiB, uploads it through the Anla
 - Prepared TYT and KPSS study packs
 - Provider-based AI integration, initially targeting Gemini
 - Cloudflare D1 persistence where appropriate
+
+Importance is the topic's weight inside the uploaded document, not a prediction that it will appear on an exam.
 
 ## Why voice and TTS are not in V1
 

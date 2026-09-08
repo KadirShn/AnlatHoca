@@ -1,5 +1,6 @@
 export { AppButton } from "./app-button";
 export { AppText } from "./app-text";
+export { AnalysisTopicCard } from "./analysis-topic-card";
 export { ConnectionStatusCard } from "./connection-status-card";
 export { DocumentPickerCard } from "./document-picker-card";
 export { EmptyState } from "./empty-state";
