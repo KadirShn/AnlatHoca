@@ -2,11 +2,12 @@
 
 Anlat Hoca is an AI-powered mobile study application being built with Expo and Cloudflare Workers.
 
-**This repository is currently in foundation stage.** It contains the monorepo structure, mobile design system and navigation shell, a typed API client, anonymous installation bootstrap, Worker connectivity, and local D1 persistence for guest installations. PDF processing, Gemini, lesson generation, quizzes, study packs, authentication, and broader product persistence are not implemented. No production Cloudflare deployment or remote D1 database has been created.
+**This repository is currently in foundation stage.** It contains the monorepo structure, mobile design system and navigation shell, local PDF selection, a typed API client, anonymous installation bootstrap, Worker connectivity, and local D1 persistence for guest installations. PDF upload/processing, Gemini, lesson generation, quizzes, study packs, authentication, and broader product persistence are not implemented. No production Cloudflare deployment or remote D1 database has been created.
 
 ## Technology stack
 
 - React Native and Expo SDK 57
+- Expo DocumentPicker for local system PDF selection
 - TypeScript and Expo Router
 - Cloudflare Workers, Hono, and Cloudflare D1
 - Zod schemas shared through `packages/contracts`
@@ -17,7 +18,7 @@ Anlat Hoca is an AI-powered mobile study application being built with Expo and C
 
 ```text
 apps/
-  mobile/      Expo mobile application, API client, and bootstrap state
+  mobile/      Expo mobile application, local PDF selection, API client, and bootstrap state
   api/         Cloudflare Worker API, D1 migrations, and data-access layer
 packages/
   contracts/   Shared runtime schemas and TypeScript API contracts
@@ -58,3 +59,9 @@ corepack pnpm --filter @anlat-hoca/api build
 ```
 
 See [docs/development.md](docs/development.md) for local D1 inspection, device-specific API URLs, and detailed instructions.
+
+## Current document-selection boundary
+
+The mobile flow accepts one PDF of at most 15 MB through the operating system document picker. It validates available metadata (name, size, and MIME type, with a limited extension fallback when MIME data is absent or generic) and keeps the selected URI only in screen memory.
+
+No PDF is uploaded, analyzed, parsed, or stored by the backend. Page count is not inspected on-device; authoritative content, signature, size, and page-limit checks belong to the future backend processing boundary. The system picker does not require broad Android storage permissions.

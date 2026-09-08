@@ -1,7 +1,10 @@
 export { AppButton } from "./app-button";
 export { AppText } from "./app-text";
 export { ConnectionStatusCard } from "./connection-status-card";
+export { DocumentPickerCard } from "./document-picker-card";
 export { EmptyState } from "./empty-state";
 export { FeatureCard } from "./feature-card";
+export { InlineMessage } from "./inline-message";
 export { ScreenContainer } from "./screen-container";
+export { SelectedDocumentCard } from "./selected-document-card";
 export { SectionHeader } from "./section-header";

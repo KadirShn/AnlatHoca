@@ -24,6 +24,10 @@ export default function RootLayout() {
           options={{ title: "Hocam Şunu Anlat" }}
         />
         <Stack.Screen
+          name="document/ready"
+          options={{ title: "Belge Hazır" }}
+        />
+        <Stack.Screen
           name="quick-study/index"
           options={{ title: "Sınava Az Kaldı" }}
         />

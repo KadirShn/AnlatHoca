@@ -6,13 +6,15 @@ Anlat Hoca is an AI-powered mobile study assistant. It is intended to help learn
 
 ## V1 objectives
 
-The planned V1 will let a learner upload an educational PDF, have the material analyzed through the backend, review extracted topics and important sections, and study from generated lessons and detailed notes. Lessons are expected to support 10, 30, and 60 minute formats and presentation-style viewing. Quizzes, questions to an AI teacher, and prepared TYT/KPSS study packs are also planned.
+The planned V1 will let a learner select an educational PDF, upload it through a future backend flow, review extracted topics and important sections, and study from generated lessons and detailed notes. Lessons are expected to support 10, 30, and 60 minute formats and presentation-style viewing. Quizzes, questions to an AI teacher, and prepared TYT/KPSS study packs are also planned.
 
 These are product objectives, not functionality present in the current foundation.
 
+The current mobile foundation implements only local selection of one PDF up to 15 MB. It shows validated file metadata and a ready placeholder, but does not upload, parse, persist, or analyze the document. Other document formats are not selectable. Page-count enforcement will be added at the authoritative backend/analysis boundary rather than through a heavy mobile PDF parser.
+
 ## Features planned for later
 
-- Secure PDF upload and temporary processing
+- Secure PDF upload, authoritative validation, and temporary processing
 - Document analysis and topic extraction
 - Time-boxed lesson generation
 - Slide presentations and detailed notes

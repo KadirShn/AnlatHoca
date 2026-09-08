@@ -59,6 +59,11 @@ The mobile client communicates with the Cloudflare Worker API. The API accesses 
 - Every database schema change requires a sequential, versioned migration.
 - Never mutate a production database schema manually outside the migration workflow.
 - Store no more user or device data than the current approved feature requires.
+- Never request broad Android storage permissions when the system document picker is sufficient.
+- Never trust a file extension alone for server-side file validation.
+- Treat mobile-side document checks as UX validation, not as a security boundary.
+- Do not persist local document URIs as durable backend identifiers.
+- Do not unnecessarily load large documents entirely into JavaScript memory.
 
 ## Working expectations
 

@@ -1,50 +1,114 @@
-import Ionicons from "@expo/vector-icons/Ionicons";
+import { router } from "expo-router";
+import { useState } from "react";
 import { StyleSheet, View } from "react-native";
 
-import { AppButton, AppText, ScreenContainer } from "@/components";
-import { colors, radius, spacing } from "@/theme";
+import {
+  AppButton,
+  AppText,
+  DocumentPickerCard,
+  InlineMessage,
+  ScreenContainer,
+  SelectedDocumentCard,
+} from "@/components";
+import {
+  pickPdfDocument,
+  validateSelectedDocument,
+  type SelectedDocument,
+} from "@/services/documents";
+import { spacing } from "@/theme";
+
+const PICKER_ERROR_MESSAGE =
+  "Dosya seçici açılamadı. Lütfen tekrar deneyin.";
 
 export function DocumentUploadScreen() {
+  const [selectedDocument, setSelectedDocument] =
+    useState<SelectedDocument | null>(null);
+  const [validationError, setValidationError] = useState<string | null>(null);
+  const [isPicking, setIsPicking] = useState(false);
+
+  const handlePick = async () => {
+    if (isPicking) {
+      return;
+    }
+
+    setIsPicking(true);
+
+    try {
+      const result = await pickPdfDocument();
+
+      if (result.status === "canceled") {
+        return;
+      }
+
+      const validation = validateSelectedDocument(result.document);
+
+      if (!validation.valid) {
+        setSelectedDocument(null);
+        setValidationError(validation.message);
+        return;
+      }
+
+      setSelectedDocument(validation.document);
+      setValidationError(null);
+    } catch {
+      setValidationError(PICKER_ERROR_MESSAGE);
+    } finally {
+      setIsPicking(false);
+    }
+  };
+
+  const handleRemove = () => {
+    setSelectedDocument(null);
+    setValidationError(null);
+  };
+
+  const handleContinue = () => {
+    if (selectedDocument) {
+      router.push("/document/ready");
+    }
+  };
+
   return (
     <ScreenContainer edges={["left", "right", "bottom"]}>
       <View style={styles.intro}>
         <AppText variant="heading2">Notlarını derse dönüştür</AppText>
         <AppText tone="muted">
-          PDF yükleme özelliği bir sonraki geliştirme adımında eklenecek.
+          Notlarını yükle, Anlat Hoca senin için çalışılabilir bir derse
+          dönüştürsün.
         </AppText>
       </View>
 
-      <View
-        accessibilityLabel="PDF yükleme alanı, henüz kullanılamıyor"
-        accessibilityRole="summary"
-        style={styles.uploadArea}
-      >
-        <View style={styles.iconContainer}>
-          <Ionicons
-            color={colors.primary}
-            name="document-text-outline"
-            size={36}
-          />
-        </View>
-        <View style={styles.uploadCopy}>
-          <AppText variant="heading3" style={styles.centerText}>
-            PDF notunu buraya ekle
-          </AppText>
-          <AppText tone="muted" style={styles.centerText}>
-            Dosya seçimi henüz etkin değil.
-          </AppText>
-        </View>
-        <AppButton disabled label="PDF Seç — Yakında" />
-      </View>
-
-      <View style={styles.note}>
-        <Ionicons
-          color={colors.textMuted}
-          name="information-circle-outline"
-          size={22}
+      {selectedDocument ? (
+        <SelectedDocumentCard
+          document={selectedDocument}
+          loading={isPicking}
+          onRemove={handleRemove}
+          onReplace={handlePick}
         />
-        <AppText tone="muted" style={styles.noteText}>
-          Dosya izni istenmez ve bu ekranda hiçbir belge yüklenmez.
+      ) : (
+        <DocumentPickerCard loading={isPicking} onPress={handlePick} />
+      )}
+
+      {validationError ? (
+        <InlineMessage message={validationError} tone="danger" />
+      ) : null}
+
+      <InlineMessage message="Kişisel, gizli veya hassas bilgi içeren belgeleri yüklememeni öneririz. Bu adımda dosyan cihazında kalır; henüz yüklenmez veya analiz edilmez." />
+
+      <View style={styles.footer}>
+        <AppButton
+          accessibilityLabel="Seçili PDF ile devam et"
+          disabled={!selectedDocument || isPicking}
+          label="Devam Et"
+          onPress={handleContinue}
+        />
+        <AppText
+          selectable
+          tone="muted"
+          variant="caption"
+          style={styles.footerCopy}
+        >
+          Bir sonraki ekranda yalnızca seçimin hazır olduğu doğrulanır.
         </AppText>
       </View>
     </ScreenContainer>
@@ -55,37 +119,10 @@ const styles = StyleSheet.create({
   intro: {
     gap: spacing.sm,
   },
-  uploadArea: {
-    alignItems: "center",
-    backgroundColor: colors.surface,
-    borderColor: colors.borderStrong,
-    borderCurve: "continuous",
-    borderRadius: radius.xl,
-    borderStyle: "dashed",
-    borderWidth: 2,
-    gap: spacing.lg,
-    padding: spacing.xxxl,
-  },
-  iconContainer: {
-    alignItems: "center",
-    backgroundColor: colors.primarySoft,
-    borderRadius: radius.full,
-    height: 72,
-    justifyContent: "center",
-    width: 72,
-  },
-  uploadCopy: {
+  footer: {
     gap: spacing.sm,
   },
-  centerText: {
+  footerCopy: {
     textAlign: "center",
-  },
-  note: {
-    alignItems: "flex-start",
-    flexDirection: "row",
-    gap: spacing.sm,
-  },
-  noteText: {
-    flex: 1,
   },
 });

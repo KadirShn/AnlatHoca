@@ -18,6 +18,20 @@ The Worker is the backend boundary. Routes validate public input and delegate da
 
 Shared request and response schemas live in `packages/contracts`. Both mobile and API use these Zod schemas to validate untrusted runtime data. Database records remain internal and are not added to public API contracts. AI prompts are owned by `packages/prompts`. Safe, non-secret shared constants belong in `packages/config`.
 
+## Current local document-selection flow
+
+```text
+/document/upload
+  -> Expo system document picker (one PDF)
+  -> local metadata checks (name, size, MIME/extension fallback)
+  -> screen-local SelectedDocument
+  -> /document/ready placeholder
+```
+
+The selected URI is temporary application input and is not sent to the Worker, placed in D1, passed in route parameters, or persisted across restarts. The current 15 MB check is shared through `packages/config`. MIME metadata is preferred; a case-insensitive `.pdf` fallback is used only when the platform omits MIME data or returns the generic `application/octet-stream` type.
+
+These mobile checks improve UX but are not a security boundary. A future upload endpoint must independently verify file signature, content type, size, and page limits before processing. Page count is intentionally not parsed on-device, and the current selection flow does not read the whole document into JavaScript memory. Android uses the system picker without broad storage permissions.
+
 ## Current bootstrap flow
 
 ```text
@@ -47,11 +61,11 @@ Schema changes are versioned in `apps/api/migrations` and applied with Wrangler'
 
 ## Current foundation
 
-- The mobile app contains a light-theme design system, reusable UI primitives, a three-tab navigation shell, and non-functional placeholder screens for future flows.
+- The mobile app contains a light-theme design system, reusable UI primitives, a three-tab navigation shell, and local-only PDF selection with metadata validation.
 - The mobile API URL has one source of truth and missing configuration degrades to a visible, retryable state without blocking navigation.
 - The API exposes `GET /`, D1-aware `GET /health`, and persistent guest bootstrap through `POST /session`.
 - D1 persistence currently contains only `guest_installations`.
-- No AI provider, document processing, authentication, or production cloud deployment is configured.
+- No PDF upload endpoint, AI provider, document processing, authentication, or production cloud deployment is configured.
 
 ## Later integrations
 

@@ -7,6 +7,7 @@ export const colors = {
   success: "#15803D",
   successSoft: "#DCFCE7",
   danger: "#B91C1C",
+  dangerSoft: "#FEF2F2",
   background: "#F6F7FB",
   surface: "#FFFFFF",
   surfaceMuted: "#F1F5F9",

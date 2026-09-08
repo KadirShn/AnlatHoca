@@ -90,6 +90,12 @@ corepack pnpm dev:mobile
 
 The Expo CLI displays options for Expo Go, Android, iOS (macOS required for the local iOS simulator), and web.
 
+### Verify PDF selection on Android
+
+Open **Hocam Şunu Anlat** and use the system document picker. The current flow accepts one PDF whose reported size is greater than zero and no more than 15 MB. Verify cancel, select, replace, remove, oversized-file error, and the disabled/enabled **Devam Et** states on a device or emulator.
+
+Selection remains local and screen-scoped. The app does not upload, parse, persist, or analyze the PDF. The Expo app config explicitly blocks legacy `READ_EXTERNAL_STORAGE` and `WRITE_EXTERNAL_STORAGE`; selection uses Android's system document picker instead. Platform MIME metadata is preferred; the `.pdf` filename suffix is only a fallback when MIME metadata is missing or generic. Page count and authoritative file validation are deferred to the future backend upload boundary.
+
 ## Quality checks
 
 ```powershell
