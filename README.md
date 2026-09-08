@@ -2,7 +2,7 @@
 
 Anlat Hoca is an AI-powered mobile study application being built with Expo and Cloudflare Workers.
 
-**This repository is currently in foundation stage.** It contains the monorepo structure, mobile design system and navigation shell, local PDF selection, a typed API client, anonymous installation bootstrap, Worker connectivity, and local D1 persistence for guest installations. PDF upload/processing, Gemini, lesson generation, quizzes, study packs, authentication, and broader product persistence are not implemented. No production Cloudflare deployment or remote D1 database has been created.
+**This repository is currently in foundation stage.** It contains the monorepo structure, mobile design system and navigation shell, PDF selection/upload, a typed API client, anonymous installation bootstrap, a Gemini Files provider, and local D1 metadata persistence. Gemini content analysis/generation, lessons, quizzes, study packs, authentication, and permanent file storage are not implemented. No production Cloudflare deployment or remote D1 database has been created.
 
 ## Technology stack
 
@@ -18,8 +18,8 @@ Anlat Hoca is an AI-powered mobile study application being built with Expo and C
 
 ```text
 apps/
-  mobile/      Expo mobile application, local PDF selection, API client, and bootstrap state
-  api/         Cloudflare Worker API, D1 migrations, and data-access layer
+  mobile/      Expo mobile application, PDF selection/upload, API client, and bootstrap state
+  api/         Worker API, Gemini Files provider, D1 migrations, services, and repositories
 packages/
   contracts/   Shared runtime schemas and TypeScript API contracts
   prompts/     AI prompt ownership and conventions
@@ -60,8 +60,10 @@ corepack pnpm --filter @anlat-hoca/api build
 
 See [docs/development.md](docs/development.md) for local D1 inspection, device-specific API URLs, and detailed instructions.
 
-## Current document-selection boundary
+## Current document pipeline
 
-The mobile flow accepts one PDF of at most 15 MB through the operating system document picker. It validates available metadata (name, size, and MIME type, with a limited extension fallback when MIME data is absent or generic) and keeps the selected URI only in screen memory.
+The mobile flow accepts one PDF of at most 15 MiB through the operating system picker and sends it as multipart form data to `POST /documents/upload`. The Worker independently validates the installation UUID, request shape, size, MIME type, and `%PDF-` signature before using the Gemini Files API resumable upload protocol.
 
-No PDF is uploaded, analyzed, parsed, or stored by the backend. Page count is not inspected on-device; authoritative content, signature, size, and page-limit checks belong to the future backend processing boundary. The system picker does not require broad Android storage permissions.
+The original PDF is temporarily stored by Gemini and is not stored in D1 or R2. D1 contains only safe display metadata and internal temporary provider references. The public mobile response contains no Gemini identifiers. Page counting and Gemini content analysis/generation are not implemented.
+
+For local upload development, copy `apps/api/.dev.vars.example` to the ignored `apps/api/.dev.vars` and provide your own server-side `GEMINI_API_KEY`. Never place that key in the mobile environment.

@@ -1,11 +1,15 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { router } from "expo-router";
+import { documentIdSchema } from "@anlat-hoca/contracts";
+import { router, useLocalSearchParams } from "expo-router";
 import { StyleSheet, View } from "react-native";
 
 import { AppButton, AppText, ScreenContainer } from "@/components";
 import { colors, radius, spacing } from "@/theme";
 
 export function DocumentReadyScreen() {
+  const { documentId } = useLocalSearchParams<{ documentId?: string }>();
+  const uploadConfirmed = documentIdSchema.safeParse(documentId).success;
+
   return (
     <ScreenContainer
       contentContainerStyle={styles.content}
@@ -17,16 +21,18 @@ export function DocumentReadyScreen() {
         </View>
         <View style={styles.copy}>
           <AppText variant="heading2" style={styles.centerText}>
-            Belge hazır
+            {uploadConfirmed ? "Belge hazır" : "Belge seçimi gerekli"}
           </AppText>
           <AppText selectable tone="muted" style={styles.centerText}>
-            PDF seçimi tamamlandı. Analiz özelliği sonraki adımda bağlanacak.
+            {uploadConfirmed
+              ? "PDF başarıyla hazırlandı. Bir sonraki adımda içeriğini analiz edip çalışma konularını çıkaracağız."
+              : "Bu belgeye ait geçerli bir yükleme bilgisi bulunamadı. Devam etmek için yeniden bir PDF seç."}
           </AppText>
         </View>
         <AppButton
           accessibilityLabel="Belge seçimine geri dön"
           label="Belge Seçimine Dön"
-          onPress={() => router.back()}
+          onPress={() => router.replace("/document/upload")}
           variant="secondary"
         />
       </View>

@@ -12,14 +12,16 @@ import { AppText } from "./app-text";
 
 interface SelectedDocumentCardProps {
   document: SelectedDocument;
-  loading: boolean;
+  interactionDisabled: boolean;
+  replaceLoading: boolean;
   onRemove: () => void;
   onReplace: () => void;
 }
 
 export function SelectedDocumentCard({
   document,
-  loading,
+  interactionDisabled,
+  replaceLoading,
   onRemove,
   onReplace,
 }: SelectedDocumentCardProps) {
@@ -50,16 +52,16 @@ export function SelectedDocumentCard({
       <View style={styles.actions}>
         <AppButton
           accessibilityLabel="Seçili PDF dosyasını değiştir"
-          disabled={loading}
+          disabled={interactionDisabled}
           label="Değiştir"
-          loading={loading}
+          loading={replaceLoading}
           onPress={onReplace}
           style={styles.action}
           variant="secondary"
         />
         <AppButton
           accessibilityLabel="Seçili PDF dosyasını kaldır"
-          disabled={loading}
+          disabled={interactionDisabled}
           label="Kaldır"
           onPress={onRemove}
           style={styles.action}

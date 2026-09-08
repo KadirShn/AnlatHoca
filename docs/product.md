@@ -10,11 +10,11 @@ The planned V1 will let a learner select an educational PDF, upload it through a
 
 These are product objectives, not functionality present in the current foundation.
 
-The current mobile foundation implements only local selection of one PDF up to 15 MB. It shows validated file metadata and a ready placeholder, but does not upload, parse, persist, or analyze the document. Other document formats are not selectable. Page-count enforcement will be added at the authoritative backend/analysis boundary rather than through a heavy mobile PDF parser.
+The current foundation selects one PDF up to 15 MiB, uploads it through the Anlat Hoca Worker to temporary Gemini Files API storage, and stores only document metadata and the internal temporary provider reference in D1. It does not store the original PDF, parse pages, or analyze/generate content. Other document formats are not selectable. Page-count enforcement will be added with the analysis boundary rather than through a heavy mobile PDF parser.
 
 ## Features planned for later
 
-- Secure PDF upload, authoritative validation, and temporary processing
+- Page-count validation and document processing
 - Document analysis and topic extraction
 - Time-boxed lesson generation
 - Slide presentations and detailed notes

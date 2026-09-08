@@ -10,24 +10,29 @@ import {
   ScreenContainer,
   SelectedDocumentCard,
 } from "@/components";
+import { ApiClientError, uploadDocument } from "@/api";
+import { useAppBootstrap } from "@/providers/app-bootstrap-provider";
 import {
   pickPdfDocument,
   validateSelectedDocument,
   type SelectedDocument,
 } from "@/services/documents";
+import { getOrCreateInstallationId } from "@/services/installation/installation-id";
 import { spacing } from "@/theme";
 
 const PICKER_ERROR_MESSAGE =
   "Dosya seçici açılamadı. Lütfen tekrar deneyin.";
 
 export function DocumentUploadScreen() {
+  const { state: bootstrapState } = useAppBootstrap();
   const [selectedDocument, setSelectedDocument] =
     useState<SelectedDocument | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [isPicking, setIsPicking] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   const handlePick = async () => {
-    if (isPicking) {
+    if (isPicking || isUploading) {
       return;
     }
 
@@ -62,9 +67,32 @@ export function DocumentUploadScreen() {
     setValidationError(null);
   };
 
-  const handleContinue = () => {
-    if (selectedDocument) {
-      router.push("/document/ready");
+  const handleContinue = async () => {
+    if (!selectedDocument || isPicking || isUploading) {
+      return;
+    }
+
+    setIsUploading(true);
+    setValidationError(null);
+
+    try {
+      const installationId =
+        bootstrapState.status === "ready"
+          ? bootstrapState.session.installationId
+          : await getOrCreateInstallationId();
+      const response = await uploadDocument({
+        installationId,
+        document: selectedDocument,
+      });
+
+      router.push({
+        pathname: "/document/ready",
+        params: { documentId: response.document.id },
+      });
+    } catch (error) {
+      setValidationError(getUploadErrorMessage(error));
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -81,7 +109,8 @@ export function DocumentUploadScreen() {
       {selectedDocument ? (
         <SelectedDocumentCard
           document={selectedDocument}
-          loading={isPicking}
+          interactionDisabled={isPicking || isUploading}
+          replaceLoading={isPicking}
           onRemove={handleRemove}
           onReplace={handlePick}
         />
@@ -93,22 +122,34 @@ export function DocumentUploadScreen() {
         <InlineMessage message={validationError} tone="danger" />
       ) : null}
 
-      <InlineMessage message="Kişisel, gizli veya hassas bilgi içeren belgeleri yüklememeni öneririz. Bu adımda dosyan cihazında kalır; henüz yüklenmez veya analiz edilmez." />
+      <InlineMessage message="PDF, yapay zekâ ile işlenmek üzere güvenli bağlantı üzerinden gönderilir. Kişisel veya hassas belgeleri yüklememeni öneririz; orijinal PDF Anlat Hoca tarafından kalıcı olarak saklanmaz." />
 
       <View style={styles.footer}>
         <AppButton
           accessibilityLabel="Seçili PDF ile devam et"
           disabled={!selectedDocument || isPicking}
-          label="Devam Et"
-          onPress={handleContinue}
+          label={isUploading ? "Belge hazırlanıyor..." : "Devam Et"}
+          loading={isUploading}
+          onPress={() => void handleContinue()}
         />
+        {isUploading ? (
+          <AppText
+            accessibilityLiveRegion="polite"
+            style={styles.footerCopy}
+            tone="muted"
+            variant="caption"
+          >
+            PDF güvenli şekilde aktarılıyor...
+          </AppText>
+        ) : null}
         <AppText
           selectable
           tone="muted"
           variant="caption"
           style={styles.footerCopy}
         >
-          Bir sonraki ekranda yalnızca seçimin hazır olduğu doğrulanır.
+          Yükleme otomatik olarak tekrarlanmaz; bir hata olursa yeniden
+          deneyebilirsin.
         </AppText>
       </View>
     </ScreenContainer>
@@ -126,3 +167,36 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 });
+
+function getUploadErrorMessage(error: unknown): string {
+  if (!(error instanceof ApiClientError)) {
+    return "Belge şu anda hazırlanamadı. Lütfen tekrar dene.";
+  }
+
+  if (error.kind === "network") {
+    return "Sunucuya ulaşılamadı. Bağlantını kontrol edip tekrar dene.";
+  }
+
+  if (error.kind === "timeout") {
+    return "Belgenin gönderilmesi beklenenden uzun sürdü. Tekrar deneyebilirsin.";
+  }
+
+  if (error.kind === "configuration") {
+    return "Sunucu adresi yapılandırılmamış.";
+  }
+
+  switch (error.serverCode) {
+    case "FILE_TOO_LARGE":
+      return "Bu dosya 15 MB sınırını aşıyor.";
+    case "UNSUPPORTED_FILE_TYPE":
+      return "Şimdilik yalnızca PDF dosyaları destekleniyor.";
+    case "INVALID_FILE":
+      return "Bu PDF kullanılamıyor. Lütfen başka bir dosya seç.";
+    case "AI_NOT_CONFIGURED":
+      return "Belge analiz servisi şu anda yapılandırılmamış.";
+    case "UPSTREAM_ERROR":
+      return "Belge şu anda hazırlanamadı. Lütfen tekrar dene.";
+    default:
+      return "Belge şu anda hazırlanamadı. Lütfen tekrar dene.";
+  }
+}

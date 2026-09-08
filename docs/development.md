@@ -9,6 +9,24 @@
 
 No Cloudflare login or remote D1 database is required for local development.
 
+## Configure the local Gemini secret
+
+Copy the tracked example to Wrangler's ignored local secret file:
+
+```powershell
+Copy-Item apps/api/.dev.vars.example apps/api/.dev.vars
+```
+
+Replace the placeholder with your own key:
+
+```text
+GEMINI_API_KEY=replace_with_your_gemini_api_key
+```
+
+`apps/api/.dev.vars` must never be committed. The key is Worker-only: do not place it in `apps/mobile/.env` or any `EXPO_PUBLIC_` variable. A future deployed Worker will use the approved `wrangler secret put GEMINI_API_KEY` workflow; do not configure remote secrets during ordinary local development.
+
+Without the local key, the Worker still starts and its root, health, and session endpoints work. A valid PDF upload returns the structured `AI_NOT_CONFIGURED` response.
+
 ## Install dependencies
 
 From the repository root:
@@ -36,6 +54,14 @@ Inspect persisted guest installations when useful:
 ```powershell
 corepack pnpm --filter @anlat-hoca/api exec wrangler d1 execute DB --local --command "SELECT installation_id, created_at, last_seen_at FROM guest_installations ORDER BY created_at;"
 ```
+
+Inspect uploaded document metadata when a real local Gemini upload has succeeded:
+
+```powershell
+corepack pnpm --filter @anlat-hoca/api exec wrangler d1 execute DB --local --command "SELECT id, installation_id, original_name, size_bytes, mime_type, provider, provider_file_name, provider_file_uri, provider_expires_at, status, created_at, updated_at FROM documents ORDER BY created_at;"
+```
+
+The `documents` table contains metadata and temporary Gemini references only. It never contains PDF bytes or mobile URIs.
 
 Wrangler persists local binding data under `apps/api/.wrangler/`, which is ignored by Git. The checked-in `DB` binding omits a remote resource ID deliberately; Wrangler 4 provisions a local-only database for these commands. Do not run remote migration or deployment commands as part of normal local development.
 
@@ -90,11 +116,13 @@ corepack pnpm dev:mobile
 
 The Expo CLI displays options for Expo Go, Android, iOS (macOS required for the local iOS simulator), and web.
 
-### Verify PDF selection on Android
+### Verify PDF selection and upload on Android
 
-Open **Hocam Şunu Anlat** and use the system document picker. The current flow accepts one PDF whose reported size is greater than zero and no more than 15 MB. Verify cancel, select, replace, remove, oversized-file error, and the disabled/enabled **Devam Et** states on a device or emulator.
+Open **Hocam Şunu Anlat** and use the system document picker. The current flow accepts one PDF whose reported size is greater than zero and no more than 15 MiB. Verify cancel, select, replace, remove, oversized-file error, upload loading, retry, and the disabled/enabled **Devam Et** states on a device or emulator.
 
-Selection remains local and screen-scoped. The app does not upload, parse, persist, or analyze the PDF. The Expo app config explicitly blocks legacy `READ_EXTERNAL_STORAGE` and `WRITE_EXTERNAL_STORAGE`; selection uses Android's system document picker instead. Platform MIME metadata is preferred; the `.pdf` filename suffix is only a fallback when MIME metadata is missing or generic. Page count and authoritative file validation are deferred to the future backend upload boundary.
+Selection remains screen-scoped. On **Devam Et**, the modern Expo `File` API and `expo/fetch` send multipart FormData without base64. The 120-second upload timeout is separate from ordinary eight-second JSON requests, and uploads are retried only when the user explicitly tries again.
+
+The Worker validates MIME, exact file size, installation UUID, and the `%PDF-` signature before uploading to temporary Gemini Files API storage. It does not parse page count or call a Gemini model. The Expo app config blocks legacy `READ_EXTERNAL_STORAGE` and `WRITE_EXTERNAL_STORAGE`; selection uses Android's system document picker instead.
 
 ## Quality checks
 
@@ -104,6 +132,7 @@ corepack pnpm lint
 corepack pnpm --filter @anlat-hoca/mobile exec expo install --check
 corepack pnpm --filter @anlat-hoca/mobile exec pnpm dlx expo-doctor@latest
 corepack pnpm --filter @anlat-hoca/api build
+corepack pnpm db:migrate:local
 ```
 
 After changing `apps/api/wrangler.jsonc`, regenerate Worker runtime and binding types:

@@ -30,8 +30,35 @@ export const guestSessionResponseSchema = z
 
 export type GuestSessionResponse = z.infer<typeof guestSessionResponseSchema>;
 
+export const documentIdSchema = z.string().uuid();
+
+export const uploadedDocumentSchema = z
+  .object({
+    id: documentIdSchema,
+    name: z.string().min(1),
+    sizeBytes: z.number().int().positive(),
+    mimeType: z.literal("application/pdf"),
+    status: z.literal("uploaded"),
+  })
+  .strict();
+
+export type UploadedDocument = z.infer<typeof uploadedDocumentSchema>;
+
+export const documentUploadResponseSchema = z
+  .object({ document: uploadedDocumentSchema })
+  .strict();
+
+export type DocumentUploadResponse = z.infer<
+  typeof documentUploadResponseSchema
+>;
+
 export const apiErrorCodeSchema = z.enum([
   "INVALID_REQUEST",
+  "FILE_TOO_LARGE",
+  "UNSUPPORTED_FILE_TYPE",
+  "INVALID_FILE",
+  "AI_NOT_CONFIGURED",
+  "UPSTREAM_ERROR",
   "METHOD_NOT_ALLOWED",
   "NOT_FOUND",
   "INTERNAL_ERROR",

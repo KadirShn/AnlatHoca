@@ -14,23 +14,28 @@ AI provider          Cloudflare D1
 
 The Expo application is the user-facing client. It calls the Cloudflare Worker API over HTTP(S) and must never call an AI provider with privileged credentials directly.
 
-The Worker is the backend boundary. Routes validate public input and delegate database work through a small data-access layer. D1 is accessed through generated `DB` binding types and parameterized prepared statements; route handlers do not embed persistence queries. Future AI calls will use a provider interface.
+The Worker is the backend boundary. Routes validate public input and delegate orchestration and database work through service and repository layers. D1 is accessed through generated `DB` binding types and parameterized prepared statements; route handlers do not embed persistence queries. Gemini Files API calls are isolated behind a temporary-file provider interface.
 
 Shared request and response schemas live in `packages/contracts`. Both mobile and API use these Zod schemas to validate untrusted runtime data. Database records remain internal and are not added to public API contracts. AI prompts are owned by `packages/prompts`. Safe, non-secret shared constants belong in `packages/config`.
 
-## Current local document-selection flow
+## Current document upload flow
 
 ```text
 /document/upload
   -> Expo system document picker (one PDF)
-  -> local metadata checks (name, size, MIME/extension fallback)
-  -> screen-local SelectedDocument
-  -> /document/ready placeholder
+  -> local metadata checks
+  -> multipart POST /documents/upload
+  -> Worker size, MIME, UUID, and %PDF- signature validation
+  -> Gemini Files API resumable temporary upload
+  -> D1 document metadata/reference insert
+  -> /document/ready with public Anlat Hoca document ID
 ```
 
-The selected URI is temporary application input and is not sent to the Worker, placed in D1, passed in route parameters, or persisted across restarts. The current 15 MB check is shared through `packages/config`. MIME metadata is preferred; a case-insensitive `.pdf` fallback is used only when the platform omits MIME data or returns the generic `application/octet-stream` type.
+The selected local URI remains screen-local and is never placed in D1 or route parameters. Mobile wraps it with Expo FileSystem's modern `File` API and `expo/fetch`, allowing FormData upload without base64 or a JavaScript string. The upload timeout is 120 seconds; ordinary JSON requests retain their shorter timeout. Retries are user-driven to avoid duplicate external files.
 
-These mobile checks improve UX but are not a security boundary. A future upload endpoint must independently verify file signature, content type, size, and page limits before processing. Page count is intentionally not parsed on-device, and the current selection flow does not read the whole document into JavaScript memory. Android uses the system picker without broad storage permissions.
+The Worker accepts `application/pdf`, or `application/octet-stream` only when the signature is valid, and reads only the initial bytes required for `%PDF-`. Mobile checks are not a security boundary. Page count is intentionally not parsed yet. Android uses the system picker without broad storage permissions.
+
+The Gemini API key exists only as the Worker secret `GEMINI_API_KEY` and is sent in the `x-goog-api-key` header. It is never included in URLs, logs, mobile configuration, responses, or D1.
 
 ## Current bootstrap flow
 
@@ -49,7 +54,9 @@ App starts
 
 ## Stored data and privacy boundary
 
-At this stage, D1 stores only the app-generated installation UUID plus UTC creation and last-seen timestamps. It does not store IP addresses, request headers, hardware or advertising identifiers, phone details, names, email addresses, profiles, credentials, or document data.
+D1 stores the app-generated installation UUID and, after a successful provider upload, document display metadata plus internal temporary provider references. It does not store PDF bytes, local URIs, IP addresses, request headers, hardware or advertising identifiers, phone details, names, email addresses, profiles, or credentials.
+
+Gemini Files API temporarily stores the original PDF and currently deletes uploaded files automatically according to its service behavior. The returned expiration timestamp is persisted only when supplied by Gemini; the application does not invent one. If D1 insertion fails after upload, the service attempts to delete the temporary provider file without replacing the original error.
 
 The UUID identifies an app installation; it is not a user account, hardware identifier, credential, or proof of identity. Its presence in D1 must never be used as authentication or authorization. Future authorization requires a separate security design. This data minimization does not imply absolute anonymity.
 
@@ -61,12 +68,12 @@ Schema changes are versioned in `apps/api/migrations` and applied with Wrangler'
 
 ## Current foundation
 
-- The mobile app contains a light-theme design system, reusable UI primitives, a three-tab navigation shell, and local-only PDF selection with metadata validation.
+- The mobile app contains local PDF selection, real multipart upload UX, user-driven retry, and a truthful uploaded-document ready state.
 - The mobile API URL has one source of truth and missing configuration degrades to a visible, retryable state without blocking navigation.
-- The API exposes `GET /`, D1-aware `GET /health`, and persistent guest bootstrap through `POST /session`.
-- D1 persistence currently contains only `guest_installations`.
-- No PDF upload endpoint, AI provider, document processing, authentication, or production cloud deployment is configured.
+- The API exposes `GET /`, D1-aware `GET /health`, `POST /session`, and `POST /documents/upload`.
+- D1 persists guest installations plus document metadata/internal provider references; it never stores raw PDFs.
+- Gemini Files upload prepares a temporary resource only. No content generation, document analysis, authentication, R2 storage, or production cloud deployment is configured.
 
 ## Later integrations
 
-Gemini is planned as the first AI provider, but its SDK and credentials will be added only behind a provider abstraction in a later task. Product tables such as documents, lessons, quizzes, users, subscriptions, and exam content will be introduced only with their actual flows and versioned migrations. Original uploaded PDFs should not be permanently stored unless a future requirement explicitly changes that policy.
+Gemini content generation will be added behind a separate provider concern in a later task. Tables for lessons, quizzes, users, subscriptions, and exam content will be introduced only with their actual flows and versioned migrations. Original uploaded PDFs should not be permanently stored unless a future requirement explicitly changes that policy.

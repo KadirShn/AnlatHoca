@@ -12,6 +12,7 @@
     "typecheck": "wrangler types --check && tsc --noEmit"
   },
   "dependencies": {
+    "@anlat-hoca/config": "workspace:*",
     "@anlat-hoca/contracts": "workspace:*",
     "hono": "^4.13.7"
   },

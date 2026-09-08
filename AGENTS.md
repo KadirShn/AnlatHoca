@@ -64,6 +64,14 @@ The mobile client communicates with the Cloudflare Worker API. The API accesses 
 - Treat mobile-side document checks as UX validation, not as a security boundary.
 - Do not persist local document URIs as durable backend identifiers.
 - Do not unnecessarily load large documents entirely into JavaScript memory.
+- AI and provider secrets are Worker-only; mobile must never communicate directly with AI providers.
+- Validate every user file's size, MIME type, and signature at the server boundary.
+- Verify the `%PDF-` signature before accepting a PDF; filenames and extensions are display metadata only.
+- Never store raw PDF bytes in D1.
+- Keep provider file names, URIs, expiration data, and other implementation metadata out of public API contracts.
+- Never log uploaded file contents, raw multipart bodies, API keys, or full installation identifiers.
+- Keep file upload and AI generation as separate application concerns.
+- Clean up temporary provider resources after partial failures when practical without masking the original failure.
 
 ## Working expectations
 
