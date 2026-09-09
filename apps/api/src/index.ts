@@ -55,6 +55,11 @@ import {
   LessonGenerationError,
 } from "./services/lesson-generation-service";
 import { bootstrapGuestSession } from "./services/guest-session-service";
+import {
+  ExamPackNotFoundError,
+  getExamPackDetail,
+  listExamPacks,
+} from "./services/exam-pack-service";
 import { getLibrary } from "./services/library-service";
 import {
   generateQuiz,
@@ -121,6 +126,26 @@ app.get("/health", async (context) => {
   } catch (error) {
     logOperationalError("database_health", error);
     return context.json(internalErrorResponse(), 503);
+  }
+});
+
+app.get("/exam-packs", (context) => context.json(listExamPacks()));
+
+app.get("/exam-packs/:packId", (context) => {
+  try {
+    return context.json(getExamPackDetail(context.req.param("packId")));
+  } catch (error) {
+    if (error instanceof ExamPackNotFoundError) {
+      return context.json(
+        errorResponse(
+          "EXAM_PACK_NOT_FOUND",
+          "Bu sınav paketi bulunamadı.",
+        ),
+        404,
+      );
+    }
+
+    throw error;
   }
 });
 
@@ -718,6 +743,8 @@ app.all("/session", (context) =>
 );
 
 app.all("/library", methodNotAllowed);
+app.all("/exam-packs", methodNotAllowedGet);
+app.all("/exam-packs/:packId", methodNotAllowedGet);
 
 app.all("/documents/upload", (context) =>
   context.json(
@@ -909,5 +936,13 @@ function methodNotAllowed(context: Context<AppEnvironment>) {
     errorResponse("METHOD_NOT_ALLOWED", "Bu yöntem desteklenmiyor."),
     405,
     { Allow: "POST" },
+  );
+}
+
+function methodNotAllowedGet(context: Context<AppEnvironment>) {
+  return context.json(
+    errorResponse("METHOD_NOT_ALLOWED", "Bu yöntem desteklenmiyor."),
+    405,
+    { Allow: "GET" },
   );
 }

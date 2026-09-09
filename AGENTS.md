@@ -4,7 +4,7 @@ Future Codex agents must read this file before making any repository change. The
 
 ## Project
 
-Anlat Hoca is an AI-powered React Native study application. PDF transfer, runtime-validated document analysis, lessons, presentations, quizzes, and lesson-grounded teacher conversations are implemented; the backend is deployed to Cloudflare production.
+Anlat Hoca is an AI-powered React Native study application. PDF transfer, runtime-validated document analysis, lessons, presentations, quizzes, lesson-grounded teacher conversations, Library, and the prepared-exam-pack catalog foundation are implemented; the backend is deployed to Cloudflare production.
 
 ## Architecture
 
@@ -112,6 +112,12 @@ The mobile client communicates with the deployed Cloudflare Worker API. The API 
 - Reopening or retrying a quiz must not regenerate it or call Gemini.
 - Keep internal quiz answer-key entities separate from public quiz contracts.
 - Use student-friendly, non-judgmental language for sections that may benefit from review.
+- Never reproduce copyrighted exam questions unless the repository has explicit rights to use them.
+- Topic and frequency metadata must remain aggregate information, not copied exam text.
+- Every historical question-frequency claim requires verified provenance; never invent exam statistics, trends, or probabilities.
+- Prepared exam catalog and content definitions must be explicitly versioned.
+- Static catalog reads must never invoke AI generation.
+- Do not add a D1 table for static product configuration without a real persistence requirement.
 
 ## Working expectations
 

@@ -12,6 +12,9 @@
   "scripts": {
     "typecheck": "tsc --noEmit"
   },
+  "dependencies": {
+    "@anlat-hoca/contracts": "workspace:*"
+  },
   "devDependencies": {
     "typescript": "~6.0.3"
   }

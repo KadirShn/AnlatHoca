@@ -6,6 +6,7 @@ export {
   uploadDocument,
 } from "./documents";
 export { generateLesson, getLessonDetail } from "./lessons";
+export { getExamPackDetail, getExamPacks } from "./exam-packs";
 export { getLibrary } from "./library";
 export {
   getOrCreateQuiz,

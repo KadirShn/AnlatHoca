@@ -491,6 +491,116 @@ export type TeacherMessageResponse = z.infer<
   typeof teacherMessageResponseSchema
 >;
 
+export const examPackIdSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(64)
+  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
+
+export const examSubjectStatusSchema = z.enum(["available", "coming_soon"]);
+
+export const examSubjectSchema = z
+  .object({
+    id: examPackIdSchema,
+    title: boundedText(1, 120),
+    description: boundedText(1, 300).optional(),
+    status: examSubjectStatusSchema,
+  })
+  .strict();
+
+export type ExamSubject = z.infer<typeof examSubjectSchema>;
+
+export const examPackDetailSchema = z
+  .object({
+    id: examPackIdSchema,
+    title: boundedText(1, 120),
+    shortTitle: boundedText(1, 80),
+    description: boundedText(1, 400),
+    audience: boundedText(1, 300),
+    contentVersion: z.string().regex(/^v[1-9]\d*$/),
+    subjects: z.array(examSubjectSchema).min(1).max(20),
+  })
+  .strict();
+
+export type ExamPackDetail = z.infer<typeof examPackDetailSchema>;
+
+export const examPackSourceSchema = z
+  .object({
+    title: boundedText(1, 200),
+    publisher: boundedText(1, 160).optional(),
+    url: z.url().optional(),
+    accessedAt: z.string().date().optional(),
+  })
+  .strict();
+
+export type ExamPackSource = z.infer<typeof examPackSourceSchema>;
+
+export const examPackDefinitionSchema = examPackDetailSchema
+  .extend({
+    sources: z.array(examPackSourceSchema).min(1).optional(),
+  })
+  .strict();
+
+export type ExamPackDefinition = z.infer<typeof examPackDefinitionSchema>;
+
+export const examPackSummarySchema = examPackDetailSchema
+  .omit({ audience: true, subjects: true })
+  .extend({
+    subjectCount: z.number().int().positive().max(20),
+  })
+  .strict();
+
+export type ExamPackSummary = z.infer<typeof examPackSummarySchema>;
+
+export const examPackCatalogResponseSchema = z
+  .object({
+    packs: z.array(examPackSummarySchema).min(1),
+  })
+  .strict();
+
+export type ExamPackCatalogResponse = z.infer<
+  typeof examPackCatalogResponseSchema
+>;
+
+export const examPackDetailResponseSchema = z
+  .object({ pack: examPackDetailSchema })
+  .strict();
+
+export type ExamPackDetailResponse = z.infer<
+  typeof examPackDetailResponseSchema
+>;
+
+export const examPackRegistrySchema = z
+  .array(examPackDefinitionSchema)
+  .min(1)
+  .superRefine((packs, context) => {
+    const packIds = new Set<string>();
+
+    packs.forEach((pack, packIndex) => {
+      if (packIds.has(pack.id)) {
+        context.addIssue({
+          code: "custom",
+          message: "Exam pack IDs must be unique.",
+          path: [packIndex, "id"],
+        });
+      }
+      packIds.add(pack.id);
+
+      const subjectIds = new Set<string>();
+      pack.subjects.forEach((subject, subjectIndex) => {
+        if (subjectIds.has(subject.id)) {
+          context.addIssue({
+            code: "custom",
+            message: "Subject IDs must be unique within an exam pack.",
+            path: [packIndex, "subjects", subjectIndex, "id"],
+          });
+        }
+        subjectIds.add(subject.id);
+      });
+    });
+  });
+
 export const apiErrorCodeSchema = z.enum([
   "INVALID_REQUEST",
   "FILE_TOO_LARGE",
@@ -517,6 +627,7 @@ export const apiErrorCodeSchema = z.enum([
   "INVALID_TEACHER_MESSAGE",
   "TEACHER_RESPONSE_FAILED",
   "USAGE_LIMIT_REACHED",
+  "EXAM_PACK_NOT_FOUND",
   "METHOD_NOT_ALLOWED",
   "NOT_FOUND",
   "INTERNAL_ERROR",

@@ -22,6 +22,12 @@ export const DEFAULT_LIBRARY_ITEM_LIMIT = 20;
 export const MAX_LIBRARY_ITEM_LIMIT = 50;
 export const HOME_RECENT_LESSON_LIMIT = 3;
 
+export {
+  EXAM_PACKS,
+  findExamPack,
+  parseExamPackRegistry,
+} from "./exam-packs";
+
 /** Lesson-grounded teacher conversation limits. */
 export const MAX_TEACHER_QUESTION_CHARS = 1_200;
 export const MAX_TEACHER_ANSWER_CHARS = 3_000;

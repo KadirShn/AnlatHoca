@@ -2,7 +2,7 @@
 
 Anlat Hoca is an AI-powered mobile study application being built with Expo and Cloudflare Workers.
 
-The repository supports PDF selection and transfer, temporary Gemini Files preparation, real AI document analysis, topic extraction, time-aware 10/30/60 minute lesson generation, persistent D1 caching, interactive presentation mode, lesson-grounded multiple-choice quizzes, persisted lesson-scoped **Hocaya Sor** conversations, and an installation-scoped Library for reopening saved work. The Worker and D1 backend are deployed to Cloudflare production. Voice/TTS, exam packs, authentication, permanent raw-file storage, and store distribution are not implemented.
+The repository supports PDF selection and transfer, temporary Gemini Files preparation, real AI document analysis, topic extraction, time-aware 10/30/60 minute lesson generation, persistent D1 caching, interactive presentation mode, lesson-grounded multiple-choice quizzes, persisted lesson-scoped **Hocaya Sor** conversations, an installation-scoped Library, and a versioned prepared-exam-pack catalog foundation. The Worker and D1 backend are deployed to Cloudflare production. Voice/TTS, prepared exam lessons, authentication, permanent raw-file storage, and store distribution are not implemented.
 
 ## Technology stack
 
@@ -101,3 +101,7 @@ From a persisted lesson, **Hocaya Sor** opens one installation-scoped conversati
 `POST /library` reads a bounded, newest-first summary of the current installation's saved lessons and documents from D1. It contains only public display metadata such as document and analysis titles, lesson duration, latest quiz score when available, and teacher-thread/message counts. Library reads never call Gemini, create rows, or regenerate content.
 
 Home requests at most three recent lessons. The Library tab requests at most 20 lessons and 20 documents, supports pull-to-refresh, and reopens existing lesson details or cached analyses. Uploaded but not yet analyzed documents open the explicit ready flow; selecting a Library item never starts analysis automatically.
+
+## Current prepared exam pack foundation
+
+`GET /exam-packs` and `GET /exam-packs/:packId` expose a small, versioned static catalog for TYT and KPSS Lisans. The mobile **Sınava Hazırlan** flow reads these runtime-validated contracts and opens direct pack detail routes. Subjects are informational and clearly marked as being prepared; no lesson content, historical question statistics, copied exam questions, AI generation, or D1 persistence is included in this foundation.

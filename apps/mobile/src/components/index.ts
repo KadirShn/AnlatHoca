@@ -4,6 +4,8 @@ export { AnalysisTopicCard } from "./analysis-topic-card";
 export { ConnectionStatusCard } from "./connection-status-card";
 export { DocumentPickerCard } from "./document-picker-card";
 export { EmptyState } from "./empty-state";
+export { ExamPackCard } from "./exam-pack-card";
+export { ExamSubjectRow } from "./exam-subject-row";
 export { FeatureCard } from "./feature-card";
 export { InlineMessage } from "./inline-message";
 export { LibraryDocumentCard } from "./library-document-card";

@@ -146,8 +146,13 @@ Wrangler serves the Worker with its local D1 binding on port 8787 without requir
 ```powershell
 Invoke-RestMethod http://localhost:8787/
 Invoke-RestMethod http://localhost:8787/health
+Invoke-RestMethod http://localhost:8787/exam-packs
+Invoke-RestMethod http://localhost:8787/exam-packs/tyt
+Invoke-RestMethod http://localhost:8787/exam-packs/kpss-lisans
 Invoke-RestMethod -Method Post -Uri http://localhost:8787/session -ContentType application/json -Body '{"installationId":"550e8400-e29b-41d4-a716-446655440000"}'
 ```
+
+Prepared exam catalog reads are public, static, runtime-validated, and require neither a guest installation identifier nor local D1 data. Unknown pack IDs return HTTP 404 with `EXAM_PACK_NOT_FOUND`.
 
 ## Start the mobile app
 

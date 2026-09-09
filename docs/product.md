@@ -6,7 +6,7 @@ Anlat Hoca is an AI-powered mobile study assistant. It is intended to help learn
 
 ## V1 objectives
 
-The V1 product direction lets a learner select an educational PDF, upload it through the backend, review extracted topics and important sections, and study from generated lessons, presentation-style views, lesson-grounded quizzes, and lesson-scoped questions to an AI teacher. Detailed notes and prepared TYT/KPSS study packs remain planned.
+The V1 product direction lets a learner select an educational PDF, upload it through the backend, review extracted topics and important sections, and study from generated lessons, presentation-style views, lesson-grounded quizzes, and lesson-scoped questions to an AI teacher. Detailed notes and prepared TYT/KPSS lesson content remain planned.
 
 PDF transfer, document analysis, time-aware written lesson generation, normal lesson reading, interactive presentation mode, multiple-choice quizzes, server-side grading, persisted attempts, weak-section feedback, persisted **Hocaya Sor** conversations, and a persistent Library/history view are currently implemented. The remaining items are product objectives.
 
@@ -26,7 +26,9 @@ The learner can return to Home or Library to reopen saved work. Home shows at mo
 
 - Page-count policy enforcement
 - Detailed notes
-- Prepared TYT and KPSS study packs
+- Verified, rights-safe lesson content inside the prepared TYT and KPSS catalog
+
+The current prepared-pack foundation publishes only a truthful, versioned TYT and KPSS Lisans catalog and their high-level subject areas. Those subject areas are marked as being prepared. It does not include copied exam questions, AI-generated exam lessons, historical frequency claims, or invented success statistics.
 
 Importance is the topic's weight inside the uploaded document, not a prediction that it will appear on an exam.
 

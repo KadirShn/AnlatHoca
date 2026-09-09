@@ -18,6 +18,18 @@ The Worker is the backend boundary. Routes validate public input and delegate or
 
 Shared request and response schemas live in `packages/contracts`. Both mobile and API use these Zod schemas to validate untrusted runtime data. Database records remain internal and are not added to public API contracts. AI prompts are owned by `packages/prompts`. Safe, non-secret shared constants belong in `packages/config`. Gemini Files upload, document analysis, and lesson generation use focused provider abstractions.
 
+## Prepared exam pack catalog flow
+
+```text
+Versioned static registry in packages/config
+  -> GET /exam-packs or GET /exam-packs/:packId
+  -> strict shared response schema
+  -> centralized mobile API client
+  -> /exams and /exams/[examId]
+```
+
+The initial `tyt` and `kpss-lisans` catalog is product configuration, not user data, so reads do not access D1 or call an AI provider. The registry validates required text, allowed status values, unique pack IDs, and unique subject IDs at startup. A future research-backed content version may attach internal source title, publisher, URL, and access-date metadata; no source is displayed or implied until verified provenance actually exists.
+
 ## Current Library read flow
 
 ```text
