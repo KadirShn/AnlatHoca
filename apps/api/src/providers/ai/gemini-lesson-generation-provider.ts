@@ -1,21 +1,21 @@
-import { documentAnalysisSchema } from "@anlat-hoca/contracts";
+import { lessonContentSchema } from "@anlat-hoca/contracts";
 
-import {
-  DocumentAnalysisProviderError,
-  type DocumentAnalysisProvider,
-  type DocumentAnalysisProviderInput,
-} from "./document-analysis-provider";
 import {
   GEMINI_ORIGIN,
   GeminiFileReadinessError,
   waitUntilGeminiFileIsActive,
   type GeminiFetchImplementation,
 } from "./gemini-file-readiness";
+import {
+  LessonGenerationProviderError,
+  type LessonGenerationProvider,
+  type LessonGenerationProviderInput,
+} from "./lesson-generation-provider";
 
-const GENERATION_TIMEOUT_MS = 75_000;
+const GENERATION_TIMEOUT_MS = 100_000;
 
-export class GeminiDocumentAnalysisProvider
-  implements DocumentAnalysisProvider
+export class GeminiLessonGenerationProvider
+  implements LessonGenerationProvider
 {
   constructor(
     private readonly apiKey: string,
@@ -26,9 +26,9 @@ export class GeminiDocumentAnalysisProvider
     ) => fetch(input, init),
   ) {}
 
-  async analyzeDocument(
-    input: DocumentAnalysisProviderInput,
-  ): Promise<ReturnType<typeof documentAnalysisSchema.parse>> {
+  async generateLesson(
+    input: LessonGenerationProviderInput,
+  ): Promise<ReturnType<typeof lessonContentSchema.parse>> {
     let activeFileUri: string;
 
     try {
@@ -39,23 +39,18 @@ export class GeminiDocumentAnalysisProvider
       );
     } catch (error) {
       if (error instanceof GeminiFileReadinessError) {
-        throw new DocumentAnalysisProviderError(error.kind, error);
+        throw new LessonGenerationProviderError(error.kind, error);
       }
 
       throw error;
     }
+
     const controller = new AbortController();
-    const timeout = setTimeout(
-      () => controller.abort(),
-      GENERATION_TIMEOUT_MS,
-    );
+    const timeout = setTimeout(() => controller.abort(), GENERATION_TIMEOUT_MS);
 
     try {
       const response = await this.fetchImplementation(
-        GEMINI_ORIGIN +
-          "/v1beta/models/" +
-          encodeURIComponent(this.model) +
-          ":generateContent",
+        `${GEMINI_ORIGIN}/v1beta/models/${encodeURIComponent(this.model)}:generateContent`,
         {
           method: "POST",
           headers: {
@@ -79,10 +74,10 @@ export class GeminiDocumentAnalysisProvider
             ],
             generationConfig: {
               candidateCount: 1,
-              maxOutputTokens: 8_192,
-              responseJsonSchema: GEMINI_DOCUMENT_ANALYSIS_SCHEMA,
+              maxOutputTokens: 16_384,
+              responseJsonSchema: GEMINI_LESSON_SCHEMA,
               responseMimeType: "application/json",
-              temperature: 0.2,
+              temperature: 0.35,
             },
             store: false,
           }),
@@ -91,53 +86,51 @@ export class GeminiDocumentAnalysisProvider
       );
 
       if (!response.ok) {
-        throw responseError(response);
+        console.error(
+          JSON.stringify({
+            event: "gemini_lesson_generation_request_failed",
+            status: response.status,
+          }),
+        );
+        throw new LessonGenerationProviderError(
+          response.status === 401 || response.status === 403
+            ? "authentication"
+            : "upstream",
+        );
       }
 
       const body: unknown = await response.json().catch((error) => {
-        throw new DocumentAnalysisProviderError(
-          "invalid-response",
-          error,
-        );
+        throw new LessonGenerationProviderError("invalid-response", error);
       });
 
       return parseGenerationResponse(body);
     } catch (error) {
-      if (error instanceof DocumentAnalysisProviderError) {
+      if (error instanceof LessonGenerationProviderError) {
         throw error;
       }
 
       if (controller.signal.aborted) {
-        throw new DocumentAnalysisProviderError("timeout", error);
+        throw new LessonGenerationProviderError("timeout", error);
       }
 
-      throw new DocumentAnalysisProviderError("network", error);
+      throw new LessonGenerationProviderError("network", error);
     } finally {
       clearTimeout(timeout);
     }
   }
-
-}
-
-function responseError(response: Response): DocumentAnalysisProviderError {
-  return new DocumentAnalysisProviderError(
-    response.status === 401 || response.status === 403
-      ? "authentication"
-      : "upstream",
-  );
 }
 
 function parseGenerationResponse(
   value: unknown,
-): ReturnType<typeof documentAnalysisSchema.parse> {
+): ReturnType<typeof lessonContentSchema.parse> {
   if (!isRecord(value)) {
-    throw new DocumentAnalysisProviderError("invalid-response");
+    throw new LessonGenerationProviderError("invalid-response");
   }
 
   const candidates = value.candidates;
 
   if (!Array.isArray(candidates) || candidates.length !== 1) {
-    throw new DocumentAnalysisProviderError(
+    throw new LessonGenerationProviderError(
       isRecord(value.promptFeedback) &&
         typeof value.promptFeedback.blockReason === "string"
         ? "safety"
@@ -156,7 +149,7 @@ function parseGenerationResponse(
     !isRecord(candidate.content.parts[0]) ||
     typeof candidate.content.parts[0].text !== "string"
   ) {
-    throw new DocumentAnalysisProviderError(
+    throw new LessonGenerationProviderError(
       isRecord(candidate) &&
         typeof candidate.finishReason === "string" &&
         candidate.finishReason !== "MAX_TOKENS"
@@ -170,13 +163,13 @@ function parseGenerationResponse(
   try {
     parsed = JSON.parse(candidate.content.parts[0].text);
   } catch (error) {
-    throw new DocumentAnalysisProviderError("invalid-response", error);
+    throw new LessonGenerationProviderError("invalid-response", error);
   }
 
-  const result = documentAnalysisSchema.safeParse(parsed);
+  const result = lessonContentSchema.safeParse(parsed);
 
   if (!result.success) {
-    throw new DocumentAnalysisProviderError(
+    throw new LessonGenerationProviderError(
       "invalid-response",
       result.error,
     );
@@ -189,62 +182,69 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
 
-const GEMINI_DOCUMENT_ANALYSIS_SCHEMA = {
+const GEMINI_LESSON_SCHEMA = {
   type: "object",
   additionalProperties: false,
   properties: {
     title: {
       type: "string",
-      description: "Belgenin Türkçe başlığı; en fazla 160 karakter.",
+      description: "Süre odağını yansıtan, en fazla 160 karakterlik Türkçe ders başlığı.",
     },
-    summary: {
+    overview: {
       type: "string",
-      description: "Belgenin kısa Türkçe özeti; en fazla 1200 karakter.",
+      description: "Dersin kapsamını açıklayan, en fazla 1000 karakterlik Türkçe giriş.",
     },
-    topics: {
+    learningObjectives: {
+      type: "array",
+      minItems: 2,
+      maxItems: 6,
+      items: { type: "string" },
+    },
+    sections: {
       type: "array",
       minItems: 1,
-      maxItems: 25,
+      maxItems: 12,
       items: {
         type: "object",
         additionalProperties: false,
         properties: {
-          title: {
-            type: "string",
-            description: "Konunun kısa Türkçe başlığı.",
-          },
-          summary: {
-            type: "string",
-            description: "Konunun kısa, kaynakla sınırlı Türkçe özeti.",
-          },
-          importance: {
-            type: "integer",
-            minimum: 1,
-            maximum: 5,
-            description: "Konunun yalnızca bu belge içindeki merkeziliği.",
-          },
-          difficulty: {
-            type: "integer",
-            minimum: 1,
-            maximum: 5,
-            description: "Konunun kavramsal zorluğu.",
-          },
+          title: { type: "string" },
+          estimatedMinutes: { type: "integer", minimum: 1, maximum: 30 },
+          explanation: { type: "string" },
           keyPoints: {
             type: "array",
             minItems: 2,
             maxItems: 6,
             items: { type: "string" },
           },
+          memoryTip: { type: "string" },
         },
         required: [
           "title",
-          "summary",
-          "importance",
-          "difficulty",
+          "estimatedMinutes",
+          "explanation",
           "keyPoints",
         ],
       },
     },
+    recap: {
+      type: "array",
+      minItems: 3,
+      maxItems: 10,
+      items: { type: "string" },
+    },
+    skippedTopics: {
+      type: "array",
+      maxItems: 10,
+      items: { type: "string" },
+    },
   },
-  required: ["title", "summary", "topics"],
+  required: [
+    "title",
+    "overview",
+    "learningObjectives",
+    "sections",
+    "recap",
+    "skippedTopics",
+  ],
 } as const;

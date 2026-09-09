@@ -32,6 +32,14 @@ export default function RootLayout() {
           options={{ title: "Belge Analizi" }}
         />
         <Stack.Screen
+          name="document/[documentId]/lesson/new"
+          options={{ title: "Ne kadar vaktin var?" }}
+        />
+        <Stack.Screen
+          name="lesson/[lessonId]"
+          options={{ title: "Ders" }}
+        />
+        <Stack.Screen
           name="quick-study/index"
           options={{ title: "Sınava Az Kaldı" }}
         />

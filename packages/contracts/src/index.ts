@@ -103,6 +103,106 @@ export type AnalyzeDocumentResponse = z.infer<
   typeof analyzeDocumentResponseSchema
 >;
 
+export const lessonDurationSchema = z.union([
+  z.literal(10),
+  z.literal(30),
+  z.literal(60),
+]);
+
+export type LessonDuration = z.infer<typeof lessonDurationSchema>;
+
+export const lessonDurationMinuteRanges = {
+  10: [8, 12],
+  30: [26, 34],
+  60: [54, 66],
+} as const satisfies Record<LessonDuration, readonly [number, number]>;
+
+export const lessonSectionSchema = z
+  .object({
+    title: boundedText(1, 120),
+    estimatedMinutes: z.number().int().min(1).max(30),
+    explanation: boundedText(80, 2_400),
+    keyPoints: z.array(boundedText(1, 240)).min(2).max(6),
+    memoryTip: boundedText(1, 300).optional(),
+  })
+  .strict();
+
+export type LessonSection = z.infer<typeof lessonSectionSchema>;
+
+export const lessonContentSchema = z
+  .object({
+    title: boundedText(1, 160),
+    overview: boundedText(1, 1_000),
+    learningObjectives: z.array(boundedText(1, 240)).min(2).max(6),
+    sections: z.array(lessonSectionSchema).min(1).max(12),
+    recap: z.array(boundedText(1, 240)).min(3).max(10),
+    skippedTopics: z.array(boundedText(1, 240)).max(10),
+  })
+  .strict();
+
+export type LessonContent = z.infer<typeof lessonContentSchema>;
+
+export const lessonIdSchema = z.string().uuid();
+
+export const lessonSchema = lessonContentSchema
+  .extend({
+    id: lessonIdSchema,
+    documentId: documentIdSchema,
+    durationMinutes: lessonDurationSchema,
+  })
+  .strict()
+  .superRefine((lesson, context) => {
+    const total = lesson.sections.reduce(
+      (sum, section) => sum + section.estimatedMinutes,
+      0,
+    );
+    const [minimum, maximum] =
+      lessonDurationMinuteRanges[lesson.durationMinutes];
+
+    if (total < minimum || total > maximum) {
+      context.addIssue({
+        code: "custom",
+        message: "Section minutes do not match the requested lesson duration.",
+        path: ["sections"],
+      });
+    }
+  });
+
+export type Lesson = z.infer<typeof lessonSchema>;
+
+export const lessonGenerationRequestSchema = z
+  .object({
+    installationId: installationIdSchema,
+    durationMinutes: lessonDurationSchema,
+  })
+  .strict();
+
+export type LessonGenerationRequest = z.infer<
+  typeof lessonGenerationRequestSchema
+>;
+
+export const lessonGenerationResponseSchema = z
+  .object({ lesson: lessonSchema })
+  .strict();
+
+export type LessonGenerationResponse = z.infer<
+  typeof lessonGenerationResponseSchema
+>;
+
+export const lessonDetailRequestSchema = z
+  .object({ installationId: installationIdSchema })
+  .strict();
+
+export type LessonDetailRequest = z.infer<typeof lessonDetailRequestSchema>;
+
+export const lessonDetailResponseSchema = z
+  .object({ lesson: lessonSchema })
+  .strict();
+
+export type LessonDetailResponse = z.infer<
+  typeof lessonDetailResponseSchema
+>;
+
 export const apiErrorCodeSchema = z.enum([
   "INVALID_REQUEST",
   "FILE_TOO_LARGE",
@@ -115,6 +215,11 @@ export const apiErrorCodeSchema = z.enum([
   "ANALYSIS_NOT_FOUND",
   "ANALYSIS_FAILED",
   "ANALYSIS_IN_PROGRESS",
+  "ANALYSIS_REQUIRED",
+  "INVALID_LESSON_DURATION",
+  "LESSON_NOT_FOUND",
+  "LESSON_GENERATION_FAILED",
+  "LESSON_IN_PROGRESS",
   "METHOD_NOT_ALLOWED",
   "NOT_FOUND",
   "INTERNAL_ERROR",

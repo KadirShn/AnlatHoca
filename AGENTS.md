@@ -79,6 +79,13 @@ The mobile client communicates with the deployed Cloudflare Worker API. The API 
 - Never present document-relative importance as exam probability unless explicit source data supports that claim.
 - Keep AI output grounded in source material and do not turn unsupported assumptions into facts.
 - Never persist chain-of-thought or expose raw provider responses through public contracts.
+- Lesson generation must be grounded in both the persisted document analysis and the temporary source PDF while it remains available.
+- Requested lesson duration changes content prioritization; 10, 30, and 60 minutes are approximate study budgets, not timing guarantees.
+- Never pretend omitted lesson topics were covered; return and display skipped topics honestly.
+- Persist and reuse validated lesson artifacts. Viewing or reopening a lesson must never regenerate it.
+- Store prompt, schema, and model versions with generated AI artifacts.
+- Never persist raw model responses, hidden reasoning, prompt bodies, or chain-of-thought.
+- Validate migrations and affected behavior locally before applying any production schema change.
 
 ## Working expectations
 

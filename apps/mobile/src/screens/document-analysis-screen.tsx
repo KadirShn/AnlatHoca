@@ -183,6 +183,37 @@ export function DocumentAnalysisScreen() {
           />
         ))}
       </View>
+
+      <View style={styles.lessonCta}>
+        <View style={styles.lessonCtaHeading}>
+          <View style={styles.lessonCtaIcon}>
+            <Ionicons color={colors.primary} name="school-outline" size={25} />
+          </View>
+          <View style={styles.lessonCtaCopy}>
+            <AppText variant="heading2">Bu belgeyle çalış</AppText>
+            <AppText tone="muted">
+              Konuları ayırabildiğin süreye göre gerçek bir derse dönüştür.
+            </AppText>
+          </View>
+        </View>
+        <AppButton
+          accessibilityLabel="Bu belge için ders oluştur"
+          label="Ders Oluştur"
+          leftIcon={
+            <Ionicons color={colors.textOnPrimary} name="sparkles" size={20} />
+          }
+          onPress={() => {
+            if (!validDocumentId) {
+              return;
+            }
+
+            router.push({
+              pathname: "/document/[documentId]/lesson/new",
+              params: { documentId: validDocumentId },
+            });
+          }}
+        />
+      </View>
     </ScreenContainer>
   );
 }
@@ -271,5 +302,31 @@ const styles = StyleSheet.create({
   },
   topics: {
     gap: spacing.lg,
+  },
+  lessonCta: {
+    backgroundColor: colors.surface,
+    borderColor: colors.primary,
+    borderCurve: "continuous",
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    gap: spacing.xl,
+    padding: spacing.xl,
+  },
+  lessonCtaHeading: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: spacing.md,
+  },
+  lessonCtaIcon: {
+    alignItems: "center",
+    backgroundColor: colors.primarySoft,
+    borderRadius: radius.md,
+    height: 48,
+    justifyContent: "center",
+    width: 48,
+  },
+  lessonCtaCopy: {
+    flex: 1,
+    gap: spacing.xs,
   },
 });

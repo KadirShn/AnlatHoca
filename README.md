@@ -2,7 +2,7 @@
 
 Anlat Hoca is an AI-powered mobile study application being built with Expo and Cloudflare Workers.
 
-The repository supports PDF selection and transfer, temporary Gemini Files preparation, real AI document analysis, topic extraction, runtime-validated structured results, and D1 analysis caching. The Worker and D1 backend are deployed to Cloudflare production. Lesson generation, quizzes, Ask Teacher, voice, authentication, permanent raw-file storage, and store distribution are not implemented.
+The repository supports PDF selection and transfer, temporary Gemini Files preparation, real AI document analysis, topic extraction, time-aware 10/30/60 minute lesson generation, runtime-validated structured results, and persistent D1 caching. The Worker and D1 backend are deployed to Cloudflare production. Slide presentation mode, quizzes, Ask Teacher, voice, exam packs, authentication, permanent raw-file storage, and store distribution are not implemented.
 
 ## Technology stack
 
@@ -18,8 +18,8 @@ The repository supports PDF selection and transfer, temporary Gemini Files prepa
 
 ```text
 apps/
-  mobile/      Expo mobile application, PDF selection/upload, API client, and bootstrap state
-  api/         Worker API, Gemini Files provider, D1 migrations, services, and repositories
+  mobile/      Expo mobile application, document flow, lesson screens, API client, and bootstrap state
+  api/         Worker API, Gemini providers, D1 migrations, services, and repositories
 packages/
   contracts/   Shared runtime schemas and TypeScript API contracts
   prompts/     AI prompt ownership and conventions
@@ -67,10 +67,16 @@ See [docs/development.md](docs/development.md) for local D1 inspection, device-s
 
 The mobile flow accepts one PDF of at most 15 MiB through the operating system picker and sends it as multipart form data to `POST /documents/upload`. The Worker independently validates the installation UUID, request shape, size, MIME type, and `%PDF-` signature before using the Gemini Files API resumable upload protocol.
 
-The original PDF is temporarily stored by Gemini and is not stored in D1 or R2. D1 contains safe display metadata, internal temporary provider references, and validated analysis output. Public mobile responses contain no Gemini identifiers. Page counting and lesson/content generation beyond document analysis are not implemented.
+The original PDF is temporarily stored by Gemini and is not stored in D1 or R2. D1 contains safe display metadata, internal temporary provider references, validated analysis output, and validated lesson artifacts. Public mobile responses contain no Gemini identifiers. Page counting and slide presentation mode are not implemented.
 
 For local upload development, copy `apps/api/.dev.vars.example` to the ignored `apps/api/.dev.vars` and provide your own server-side `GEMINI_API_KEY`. Never place that key in the mobile environment.
 
 Document analysis uses the server-only `GEMINI_ANALYSIS_MODEL` setting and defaults to `gemini-3.6-flash`. The first successful analysis is stored in D1 with its schema, prompt, and model version. Repeated analyze requests return that validated stored result rather than spending another model call.
 
 The mobile results route reads only the cached D1 analysis. Opening the screen never triggers hidden analysis or regeneration.
+
+## Current lesson pipeline
+
+After analysis, the learner explicitly chooses a 10, 30, or 60 minute study budget. The Worker combines the persisted analysis with the still-available temporary Gemini PDF, requests structured Turkish teaching content, validates it with shared Zod schemas and duration tolerances, and persists the validated lesson in D1.
+
+The cache identity includes document, duration, schema version, prompt version, and model. Repeating the same request returns the persisted lesson without another Gemini call. Opening `/lesson/[lessonId]` reads D1 only. A D1 generation claim limits rapid duplicate requests without adding paid coordination services.

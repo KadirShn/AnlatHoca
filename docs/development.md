@@ -27,7 +27,7 @@ GEMINI_API_KEY=replace_with_your_gemini_api_key
 
 Without the local key, the Worker still starts and its root, health, and session endpoints work. A valid PDF upload returns the structured `AI_NOT_CONFIGURED` response.
 
-The non-secret `GEMINI_ANALYSIS_MODEL` Worker variable defaults to `gemini-3.6-flash` in `wrangler.jsonc`. Change that one server-side setting to test an approved compatible model; never expose it through mobile configuration.
+The non-secret `GEMINI_ANALYSIS_MODEL` and `GEMINI_LESSON_MODEL` Worker variables independently default to `gemini-3.6-flash` in `wrangler.jsonc`. Change only the relevant server-side setting to test an approved compatible model; never expose either setting through mobile configuration.
 
 ## Install dependencies
 
@@ -72,6 +72,14 @@ corepack pnpm --filter @anlat-hoca/api exec wrangler d1 execute DB --local --com
 ```
 
 `document_analyses` contains only validated title/summary/topic output and version metadata. It does not contain the raw Gemini response, PDF bytes, prompt text, chain-of-thought, or provider credentials.
+
+Inspect validated lesson artifacts and cache metadata without selecting lesson content:
+
+```powershell
+corepack pnpm --filter @anlat-hoca/api exec wrangler d1 execute DB --local --command "SELECT id, document_id, duration_minutes, schema_version, prompt_version, model, status, created_at, updated_at FROM document_lessons ORDER BY created_at;"
+```
+
+`document_lessons` stores validated lesson JSON and versioned cache metadata. It does not store the prompt body, raw Gemini response, chain-of-thought, PDF bytes, or credentials.
 
 Wrangler persists local binding data under `apps/api/.wrangler/`, which is ignored by Git. Although the checked-in `DB` binding names the production database, `wrangler dev` and commands with `--local` use isolated local state. Do not run remote migration or deployment commands as part of normal local development.
 
@@ -136,6 +144,8 @@ The Worker validates MIME, exact file size, installation UUID, and the `%PDF-` s
 
 After upload, press **Belgeyi Analiz Et** to make the one explicit analysis request. The Worker checks ownership, returns cached output when present, polls temporary-file readiness for a bounded period, calls the configured Gemini model, validates the structured result, and stores it in D1. Reopening the results route reads the D1 cache and never calls Gemini automatically. Analysis requests use a 120-second mobile timeout and remain user-retry driven.
 
+After analysis, press **Bu belgeyle çalış**, choose exactly 10, 30, or 60 minutes, and press **Ders Oluştur**. The Worker requires the persisted analysis, combines it with the still-temporary source PDF through the lesson provider, validates the structured lesson and its total section minutes, and stores a versioned D1 cache entry. Repeating the same document/duration/version/model request returns that cache without another model call. Opening an existing lesson reads D1 only. Generation is explicit, has a 120-second mobile timeout, and remains user-retry driven.
+
 ## Quality checks
 
 ```powershell
@@ -170,6 +180,8 @@ corepack pnpm db:migrations:list:remote
 corepack pnpm db:migrate:remote
 corepack pnpm deploy:api
 ```
+
+Always apply pending production migrations before deploying Worker code that depends on the new schema. Afterward, list migrations again and inspect only the non-sensitive schema/cache metadata needed for validation.
 
 `--local` uses Wrangler state under `apps/api/.wrangler` and is the default for ordinary `wrangler dev` work. `--remote` targets the production D1 database. Never substitute one for the other casually.
 

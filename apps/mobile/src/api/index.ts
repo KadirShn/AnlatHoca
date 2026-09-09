@@ -5,3 +5,4 @@ export {
   getDocumentAnalysis,
   uploadDocument,
 } from "./documents";
+export { generateLesson, getLessonDetail } from "./lessons";

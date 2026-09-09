@@ -16,7 +16,7 @@ The Expo application is the user-facing client. It calls the Cloudflare Worker A
 
 The Worker is the backend boundary. Routes validate public input and delegate orchestration and database work through service and repository layers. D1 is accessed through generated `DB` binding types and parameterized prepared statements; route handlers do not embed persistence queries. Gemini Files API calls are isolated behind a temporary-file provider interface.
 
-Shared request and response schemas live in `packages/contracts`. Both mobile and API use these Zod schemas to validate untrusted runtime data. Database records remain internal and are not added to public API contracts. AI prompts are owned by `packages/prompts`. Safe, non-secret shared constants belong in `packages/config`. Gemini Files upload and document analysis use separate provider abstractions.
+Shared request and response schemas live in `packages/contracts`. Both mobile and API use these Zod schemas to validate untrusted runtime data. Database records remain internal and are not added to public API contracts. AI prompts are owned by `packages/prompts`. Safe, non-secret shared constants belong in `packages/config`. Gemini Files upload, document analysis, and lesson generation use focused provider abstractions.
 
 ## Current document upload flow
 
@@ -61,6 +61,28 @@ The analysis endpoint returns an existing valid analysis before checking provide
 
 Result-screen recovery uses a separate POST read endpoint carrying the installation UUID in JSON. It reads D1 only and never starts model generation. Installation scoping prevents casual cross-installation document lookup, but the installation UUID remains guest scoping rather than strong authentication.
 
+## Current lesson generation flow
+
+```text
+/document/:documentId/analysis
+  -> explicit duration choice: 10, 30, or 60 minutes
+  -> POST /documents/:documentId/lessons
+  -> ownership + persisted analysis validation
+  -> current lesson cache lookup
+  -> D1 generation claim
+  -> bounded Gemini file readiness check
+  -> persisted analysis + temporary source PDF + versioned prompt
+  -> Gemini structured JSON generation
+  -> JSON parse + shared Zod + duration-total validation
+  -> D1 lesson persistence
+  -> /lesson/:lessonId
+  -> POST /lessons/:lessonId/detail (D1 only)
+```
+
+`GEMINI_LESSON_MODEL` is independent from `GEMINI_ANALYSIS_MODEL`; both currently default to `gemini-3.6-flash`. The lesson prompt and public schema are versioned as `v1`. Section minute totals must fall within 8-12, 26-34, or 54-66 minutes for the selected 10, 30, or 60 minute study budget.
+
+The cache identity is `(document_id, duration_minutes, schema_version, prompt_version, model)`. A unique D1 index and token-owned generation claim prevent ordinary duplicate requests. Interrupted claims can be reclaimed after three minutes; this is a small D1-compatible guard rather than a globally serialized lock. Provider failures release their claim. Cached lessons are returned before source-expiration checks, while uncached generation requires the temporary PDF to remain available.
+
 ## Current bootstrap flow
 
 ```text
@@ -78,7 +100,7 @@ App starts
 
 ## Stored data and privacy boundary
 
-D1 stores the app-generated installation UUID, document display metadata, internal temporary provider references, and validated generated analysis. Analysis persistence contains title, summary, topics JSON, schema version, prompt version, and model name. It does not store PDF bytes, local URIs, raw Gemini responses, chain-of-thought, IP addresses, request headers, hardware or advertising identifiers, phone details, names, email addresses, profiles, or credentials.
+D1 stores the app-generated installation UUID, document display metadata, internal temporary provider references, validated analysis, and validated lesson artifacts. Lesson persistence contains public educational fields plus duration, schema version, prompt version, and model name. It does not store PDF bytes, prompt bodies, local URIs, raw Gemini responses, chain-of-thought, IP addresses, request headers, hardware or advertising identifiers, phone details, names, email addresses, profiles, or credentials.
 
 Gemini Files API temporarily stores the original PDF and currently deletes uploaded files automatically according to its service behavior. The returned expiration timestamp is persisted only when supplied by Gemini; the application does not invent one. If D1 insertion fails after upload, the service attempts to delete the temporary provider file without replacing the original error.
 
@@ -92,12 +114,12 @@ Schema changes are versioned in `apps/api/migrations` and applied with Wrangler'
 
 ## Current capabilities
 
-- The mobile app contains local PDF selection, real multipart upload UX, explicit analysis UX, and a scrollable real-results screen.
+- The mobile app contains local PDF selection, real multipart upload UX, explicit analysis UX, duration selection, and scrollable analysis/lesson screens.
 - The mobile API URL has one source of truth and missing configuration degrades to a visible, retryable state without blocking navigation.
-- The API additionally exposes explicit analysis generation and cached-analysis read endpoints.
-- D1 persists guest installations, document metadata/internal provider references, and validated analysis results; it never stores raw PDFs.
-- Gemini document analysis is deployed through the production Worker and D1. Lesson generation, quizzes, Ask Teacher, authentication, R2 storage, and store distribution are not configured.
+- The API exposes explicit analysis/lesson generation and D1-only detail endpoints.
+- D1 persists guest installations, document metadata/internal provider references, validated analyses, and versioned lesson cache entries; it never stores raw PDFs.
+- Gemini document analysis and lesson generation are deployed through the production Worker. Slide mode, quizzes, Ask Teacher, authentication, R2 storage, and store distribution are not configured.
 
 ## Later integrations
 
-Lesson-generation prompts and tables for lessons, quizzes, users, subscriptions, and exam content will be introduced only with their actual flows and versioned migrations. Original uploaded PDFs should not be permanently stored unless a future requirement explicitly changes that policy.
+Tables for quizzes, users, subscriptions, and exam content will be introduced only with their actual flows and versioned migrations. Original uploaded PDFs should not be permanently stored unless a future requirement explicitly changes that policy.

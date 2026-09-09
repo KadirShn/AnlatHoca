@@ -8,14 +8,15 @@ Anlat Hoca is an AI-powered mobile study assistant. It is intended to help learn
 
 The V1 product direction lets a learner select an educational PDF, upload it through the backend, review extracted topics and important sections, and later study from generated lessons and detailed notes. Lessons are expected to support 10, 30, and 60 minute formats and presentation-style viewing. Quizzes, questions to an AI teacher, and prepared TYT/KPSS study packs are also planned.
 
-Only PDF transfer and document analysis are currently implemented; the remaining items are product objectives.
+PDF transfer, document analysis, and time-aware written lesson generation are currently implemented. Slide presentation mode and the remaining items are product objectives.
 
 The current V1 flow selects one PDF up to 15 MiB, uploads it through the Anlat Hoca Worker to temporary Gemini Files API storage, and stores only document metadata and the internal temporary provider reference in D1. The user can explicitly start a Turkish document analysis that produces a concise summary, meaningful topics, document-relative importance, conceptual difficulty, and key learning points. The runtime-validated result is cached in D1. The original PDF is not stored by Anlat Hoca.
+
+After analysis, the learner can explicitly request an approximately 10, 30, or 60 minute written lesson. Ten minutes prioritizes urgent review and openly lists skipped lower-priority topics; 30 minutes balances coverage and explanation; 60 minutes covers most meaningful topics with additional relationships and detail. These durations are study-budget targets, not stopwatch guarantees. Generated lessons are source-grounded, runtime-validated, persisted, and reused.
 
 ## Features planned for later
 
 - Page-count policy enforcement
-- Time-boxed lesson generation
 - Slide presentations and detailed notes
 - Quizzes and answer review
 - Questions grounded in uploaded material

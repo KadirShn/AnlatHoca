@@ -1,6 +1,10 @@
 import {
   analyzeDocumentRequestSchema,
   guestSessionRequestSchema,
+  installationIdSchema,
+  lessonDetailRequestSchema,
+  lessonDurationSchema,
+  lessonGenerationRequestSchema,
   type ApiErrorResponse,
   type ApiHealthResponse,
   type ApiInfoResponse,
@@ -13,12 +17,17 @@ import { bodyLimit } from "hono/body-limit";
 import { cors } from "hono/cors";
 
 import { assertDatabaseAvailable } from "./data/database-health";
-import { resolveGeminiAnalysisModel } from "./config/ai";
+import {
+  resolveGeminiAnalysisModel,
+  resolveGeminiLessonModel,
+} from "./config/ai";
 import { D1DocumentAnalysisRepository } from "./data/document-analysis-repository";
+import { D1DocumentLessonRepository } from "./data/document-lesson-repository";
 import { D1DocumentRepository } from "./data/document-repository";
 import { D1InstallationRepository } from "./data/installation-repository";
 import { GeminiFilesProvider } from "./providers/files/gemini-files-provider";
 import { GeminiDocumentAnalysisProvider } from "./providers/ai/gemini-document-analysis-provider";
+import { GeminiLessonGenerationProvider } from "./providers/ai/gemini-lesson-generation-provider";
 import {
   analyzeDocument,
   DocumentAnalysisError,
@@ -28,6 +37,11 @@ import {
   DocumentUploadError,
   uploadDocument,
 } from "./services/document-upload-service";
+import {
+  generateLesson,
+  getLessonDetail,
+  LessonGenerationError,
+} from "./services/lesson-generation-service";
 import { bootstrapGuestSession } from "./services/guest-session-service";
 
 type AppEnvironment = { Bindings: Env };
@@ -266,7 +280,7 @@ app.post(
 );
 
 app.post(
-  "/documents/:documentId/analysis",
+    "/documents/:documentId/analysis",
   bodyLimit({
     maxSize: 1_024,
     onError: (context) =>
@@ -297,6 +311,97 @@ app.post(
   },
 );
 
+app.post(
+  "/documents/:documentId/lessons",
+  bodyLimit({
+    maxSize: 1_024,
+    onError: (context) =>
+      context.json(errorResponse("INVALID_REQUEST", "Geçersiz istek."), 400),
+  }),
+  async (context) => {
+    const body = await readJsonBody(context.req.raw);
+    const request = lessonGenerationRequestSchema.safeParse(body);
+
+    if (!request.success) {
+      if (hasOnlyLessonRequestKeys(body) && hasValidInstallationId(body)) {
+        const duration = lessonDurationSchema.safeParse(body.durationMinutes);
+
+        if (!duration.success) {
+          return context.json(
+            errorResponse(
+              "INVALID_LESSON_DURATION",
+              "Çalışma süresi 10, 30 veya 60 dakika olmalıdır.",
+            ),
+            400,
+          );
+        }
+      }
+
+      return context.json(
+        errorResponse("INVALID_REQUEST", "Geçersiz istek."),
+        400,
+      );
+    }
+
+    const model = resolveGeminiLessonModel(context.env.GEMINI_LESSON_MODEL);
+    const apiKey = context.env.GEMINI_API_KEY?.trim();
+    const provider = apiKey
+      ? new GeminiLessonGenerationProvider(apiKey, model)
+      : undefined;
+
+    try {
+      const result = await generateLesson({
+        documentId: context.req.param("documentId"),
+        installationId: request.data.installationId,
+        durationMinutes: request.data.durationMinutes,
+        model,
+        documentRepository: new D1DocumentRepository(context.env.DB),
+        analysisRepository: new D1DocumentAnalysisRepository(context.env.DB),
+        lessonRepository: new D1DocumentLessonRepository(context.env.DB),
+        lessonProvider: provider,
+      });
+
+      return result.created
+        ? context.json(result.response, 201)
+        : context.json(result.response, 200);
+    } catch (error) {
+      return handleLessonError(context, error, "lesson_generate");
+    }
+  },
+);
+
+app.post(
+  "/lessons/:lessonId/detail",
+  bodyLimit({
+    maxSize: 1_024,
+    onError: (context) =>
+      context.json(errorResponse("INVALID_REQUEST", "Geçersiz istek."), 400),
+  }),
+  async (context) => {
+    const body = await readJsonBody(context.req.raw);
+    const request = lessonDetailRequestSchema.safeParse(body);
+
+    if (!request.success) {
+      return context.json(
+        errorResponse("INVALID_REQUEST", "Geçersiz istek."),
+        400,
+      );
+    }
+
+    try {
+      const response = await getLessonDetail({
+        lessonId: context.req.param("lessonId"),
+        installationId: request.data.installationId,
+        lessonRepository: new D1DocumentLessonRepository(context.env.DB),
+      });
+
+      return context.json(response);
+    } catch (error) {
+      return handleLessonError(context, error, "lesson_detail");
+    }
+  },
+);
+
 app.all("/session", (context) =>
   context.json(
     errorResponse("METHOD_NOT_ALLOWED", "Bu yöntem desteklenmiyor."),
@@ -322,6 +427,22 @@ app.all("/documents/:documentId/analyze", (context) =>
 );
 
 app.all("/documents/:documentId/analysis", (context) =>
+  context.json(
+    errorResponse("METHOD_NOT_ALLOWED", "Bu yöntem desteklenmiyor."),
+    405,
+    { Allow: "POST" },
+  ),
+);
+
+app.all("/documents/:documentId/lessons", (context) =>
+  context.json(
+    errorResponse("METHOD_NOT_ALLOWED", "Bu yöntem desteklenmiyor."),
+    405,
+    { Allow: "POST" },
+  ),
+);
+
+app.all("/lessons/:lessonId/detail", (context) =>
   context.json(
     errorResponse("METHOD_NOT_ALLOWED", "Bu yöntem desteklenmiyor."),
     405,
@@ -362,12 +483,56 @@ async function readAnalysisRequest(request: Request) {
   return analyzeDocumentRequestSchema.safeParse(body);
 }
 
+async function readJsonBody(request: Request): Promise<unknown> {
+  try {
+    return await request.json();
+  } catch {
+    return undefined;
+  }
+}
+
+function hasOnlyLessonRequestKeys(
+  value: unknown,
+): value is Record<string, unknown> {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    Object.keys(value).every(
+      (key) => key === "installationId" || key === "durationMinutes",
+    )
+  );
+}
+
+function hasValidInstallationId(value: Record<string, unknown>): boolean {
+  return installationIdSchema.safeParse(value.installationId).success;
+}
+
 function handleAnalysisError(
   context: Context<AppEnvironment>,
   error: unknown,
   operation: string,
 ) {
   if (error instanceof DocumentAnalysisError) {
+    if (error.status >= 500 && error.code !== "AI_NOT_CONFIGURED") {
+      logOperationalError(operation, error);
+    }
+
+    return context.json(
+      errorResponse(error.code, error.publicMessage),
+      error.status,
+    );
+  }
+
+  logOperationalError(operation, error);
+  return context.json(internalErrorResponse(), 500);
+}
+
+function handleLessonError(
+  context: Context<AppEnvironment>,
+  error: unknown,
+  operation: string,
+) {
+  if (error instanceof LessonGenerationError) {
     if (error.status >= 500 && error.code !== "AI_NOT_CONFIGURED") {
       logOperationalError(operation, error);
     }
