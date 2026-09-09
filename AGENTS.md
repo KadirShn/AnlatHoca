@@ -86,6 +86,11 @@ The mobile client communicates with the deployed Cloudflare Worker API. The API 
 - Store prompt, schema, and model versions with generated AI artifacts.
 - Never persist raw model responses, hidden reasoning, prompt bodies, or chain-of-thought.
 - Validate migrations and affected behavior locally before applying any production schema change.
+- Presentation mode must never regenerate AI content; it is a deterministic mobile projection of a persisted lesson.
+- Do not store presentation-only layout or navigation state in D1 without an explicit product requirement.
+- Never silently truncate lesson content to fit a presentation layout; split it deterministically and preserve its meaning and order.
+- Future TTS should attach narration to deterministic slide narration text instead of regenerating educational content.
+- Presentation accessibility and readable text scaling take priority over forcing every slide onto one physical screen.
 
 ## Working expectations
 

@@ -83,6 +83,21 @@ Result-screen recovery uses a separate POST read endpoint carrying the installat
 
 The cache identity is `(document_id, duration_minutes, schema_version, prompt_version, model)`. A unique D1 index and token-owned generation claim prevent ordinary duplicate requests. Interrupted claims can be reclaimed after three minutes; this is a small D1-compatible guard rather than a globally serialized lock. Provider failures release their claim. Cached lessons are returned before source-expiration checks, while uncached generation requires the temporary PDF to remain available.
 
+## Current presentation flow
+
+```text
+/lesson/:lessonId
+  -> Sunum Modunda Çalış
+  -> /lesson/:lessonId/presentation
+  -> existing POST /lessons/:lessonId/detail
+  -> persisted lesson + mobile-only deterministic adapter
+  -> intro/objectives/section/explanation/recap/skipped slides
+```
+
+Presentation mode is a mobile rendering concern. It reuses the existing installation-scoped, D1-only lesson detail endpoint and never calls Gemini. The adapter preserves lesson and section order, creates stable slide IDs, and splits long explanations for display without mutating the persisted lesson. Explanation slides expose deterministic internal narration text so a future TTS layer can attach to existing educational content instead of regenerating it.
+
+The current slide index is screen-local. Swipe navigation uses native horizontal paged `FlatList`; explicit controls and text/progress indicators remain available. No presentation artifact, layout state, or completion state is stored in D1.
+
 ## Current bootstrap flow
 
 ```text
@@ -114,11 +129,11 @@ Schema changes are versioned in `apps/api/migrations` and applied with Wrangler'
 
 ## Current capabilities
 
-- The mobile app contains local PDF selection, real multipart upload UX, explicit analysis UX, duration selection, and scrollable analysis/lesson screens.
+- The mobile app contains local PDF selection, real multipart upload UX, explicit analysis UX, duration selection, scrollable lesson reading, and an interactive presentation mode.
 - The mobile API URL has one source of truth and missing configuration degrades to a visible, retryable state without blocking navigation.
 - The API exposes explicit analysis/lesson generation and D1-only detail endpoints.
 - D1 persists guest installations, document metadata/internal provider references, validated analyses, and versioned lesson cache entries; it never stores raw PDFs.
-- Gemini document analysis and lesson generation are deployed through the production Worker. Slide mode, quizzes, Ask Teacher, authentication, R2 storage, and store distribution are not configured.
+- Gemini document analysis and lesson generation are deployed through the production Worker. Presentation mode is derived locally from cached lessons. Quizzes, Ask Teacher, voice/TTS, authentication, R2 storage, and store distribution are not configured.
 
 ## Later integrations
 

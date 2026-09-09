@@ -40,6 +40,10 @@ export default function RootLayout() {
           options={{ title: "Ders" }}
         />
         <Stack.Screen
+          name="lesson/[lessonId]/presentation"
+          options={{ headerShown: false, title: "Sunum Modu" }}
+        />
+        <Stack.Screen
           name="quick-study/index"
           options={{ title: "Sınava Az Kaldı" }}
         />

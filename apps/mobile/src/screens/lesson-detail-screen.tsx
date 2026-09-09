@@ -130,6 +130,35 @@ export function LessonDetailScreen() {
         </View>
       </View>
 
+      <View style={styles.presentationCta}>
+        <View style={styles.presentationCtaCopy}>
+          <View style={styles.blockHeading}>
+            <Ionicons color={colors.primary} name="easel-outline" size={23} />
+            <AppText variant="heading3">Sunum modu</AppText>
+          </View>
+          <AppText tone="muted">
+            Konuları tek tek, daha odaklı bir akışla çalış.
+          </AppText>
+        </View>
+        <AppButton
+          accessibilityLabel="Dersi sunum modunda aç"
+          label="Sunum Modunda Çalış"
+          leftIcon={
+            <Ionicons
+              color={colors.textOnPrimary}
+              name="albums-outline"
+              size={21}
+            />
+          }
+          onPress={() =>
+            router.push({
+              pathname: "/lesson/[lessonId]/presentation",
+              params: { lessonId: lesson.id },
+            })
+          }
+        />
+      </View>
+
       <View style={styles.overviewCard}>
         <AppText variant="heading3">Derse genel bakış</AppText>
         <AppText selectable tone="muted" style={styles.readableText}>
@@ -309,6 +338,18 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     gap: spacing.md,
     padding: spacing.xl,
+  },
+  presentationCta: {
+    backgroundColor: colors.primarySoft,
+    borderColor: colors.primary,
+    borderCurve: "continuous",
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    gap: spacing.lg,
+    padding: spacing.xl,
+  },
+  presentationCtaCopy: {
+    gap: spacing.sm,
   },
   readableText: {
     lineHeight: 25,
