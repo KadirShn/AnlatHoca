@@ -4,7 +4,7 @@ import {
   type ExamSubjectInsightsResponse,
   type HistoricalExamSource,
 } from "@anlat-hoca/contracts";
-import { useLocalSearchParams } from "expo-router";
+import { type Href, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -28,6 +28,7 @@ import { colors, radius, spacing } from "@/theme";
 const LOAD_ERROR = "Doğrulanmış geçmiş sınav verileri şu anda yüklenemedi.";
 
 export function ExamSubjectInsightsScreen() {
+  const router = useRouter();
   const params = useLocalSearchParams<{
     examId?: string | string[];
     subjectId?: string | string[];
@@ -130,6 +131,14 @@ export function ExamSubjectInsightsScreen() {
           </View>
 
           <InlineMessage message={insights.disclaimer} tone="info" />
+          <AppButton
+            label="Çalışma Planı Oluştur"
+            onPress={() =>
+              router.push(
+                `/exams/${insights.examPackId}/${insights.subjectId}/plan` as Href,
+              )
+            }
+          />
           <AppButton
             label="Bu veriler nasıl hazırlandı?"
             onPress={() => setMethodologyVisible(true)}

@@ -28,7 +28,7 @@ The learner can return to Home or Library to reopen saved work. Home shows at mo
 - Detailed notes
 - Verified, rights-safe lesson content inside the prepared TYT and KPSS catalog
 
-The prepared-pack catalog publishes a truthful, versioned TYT and KPSS Lisans catalog. KPSS Lisans Tarih and Coğrafya include a first verified historical insight view derived only from ÖSYM's public 10% samples for 2021–2025. It contains aggregate, source-linked observations—not copied questions, full-exam distributions, success claims, predictions, or AI-generated lessons. Other subjects remain marked as being prepared.
+The prepared-pack catalog publishes a truthful, versioned TYT and KPSS Lisans catalog. KPSS Lisans Tarih and Coğrafya include a first verified historical insight view derived only from ÖSYM's public 10% samples for 2021–2025. The mobile app can deterministically convert that existing topic order into 10, 30, or 60 minute study plans, with omitted topics shown explicitly in shorter plans. These views contain aggregate, source-linked observations—not copied questions, full-exam distributions, success claims, predictions, or AI-generated lessons. Other subjects remain marked as being prepared.
 
 Importance is the topic's weight inside the uploaded document, not a prediction that it will appear on an exam.
 
