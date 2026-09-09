@@ -203,6 +203,87 @@ export type LessonDetailResponse = z.infer<
   typeof lessonDetailResponseSchema
 >;
 
+export const libraryItemLimitSchema = z.number().int().min(1).max(50);
+
+export const libraryRequestSchema = z
+  .object({
+    installationId: installationIdSchema,
+    lessonLimit: libraryItemLimitSchema.optional().default(20),
+    documentLimit: libraryItemLimitSchema.optional().default(20),
+  })
+  .strict();
+
+export type LibraryRequest = z.infer<typeof libraryRequestSchema>;
+
+export const libraryLatestQuizAttemptSchema = z
+  .object({
+    id: z.string().uuid(),
+    scorePercent: z.number().int().min(0).max(100),
+  })
+  .strict();
+
+export const libraryLessonSummarySchema = z
+  .object({
+    id: lessonIdSchema,
+    documentId: documentIdSchema,
+    title: boundedText(1, 160),
+    durationMinutes: lessonDurationSchema,
+    createdAt: z.string().datetime({ offset: true }),
+    document: z
+      .object({
+        name: z.string().min(1),
+        analysisTitle: boundedText(1, 160).nullable(),
+      })
+      .strict(),
+    quiz: z
+      .object({
+        available: z.boolean(),
+        latestAttempt: libraryLatestQuizAttemptSchema.nullable(),
+      })
+      .strict(),
+    teacher: z
+      .object({
+        threadExists: z.boolean(),
+        messageCount: z.number().int().nonnegative(),
+      })
+      .strict(),
+  })
+  .strict();
+
+export type LibraryLessonSummary = z.infer<
+  typeof libraryLessonSummarySchema
+>;
+
+export const libraryDocumentSummarySchema = z
+  .object({
+    id: documentIdSchema,
+    name: z.string().min(1),
+    status: z.enum(["uploaded", "analyzed"]),
+    createdAt: z.string().datetime({ offset: true }),
+    analysis: z
+      .object({
+        title: boundedText(1, 160),
+        topicCount: z.number().int().nonnegative().max(25),
+      })
+      .strict()
+      .nullable(),
+    lessonCount: z.number().int().nonnegative(),
+  })
+  .strict();
+
+export type LibraryDocumentSummary = z.infer<
+  typeof libraryDocumentSummarySchema
+>;
+
+export const libraryResponseSchema = z
+  .object({
+    lessons: z.array(libraryLessonSummarySchema).max(50),
+    documents: z.array(libraryDocumentSummarySchema).max(50),
+  })
+  .strict();
+
+export type LibraryResponse = z.infer<typeof libraryResponseSchema>;
+
 export const quizIdSchema = z.string().uuid();
 export const quizAttemptIdSchema = z.string().uuid();
 export const quizOptionIndexSchema = z.number().int().min(0).max(3);

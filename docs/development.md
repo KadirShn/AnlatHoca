@@ -1,5 +1,7 @@
 # Development
 
+Home and Library use the centralized, runtime-validated `POST /library` client. Home requests three recent lessons; Library requests 20 lessons and 20 documents and refreshes on focus or pull. A successful empty response is expected for a new installation and does not require fixture data or Gemini access.
+
 ## Prerequisites
 
 - Windows, macOS, or Linux supported by Expo and Wrangler

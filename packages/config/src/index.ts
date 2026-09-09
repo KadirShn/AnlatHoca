@@ -17,6 +17,11 @@ export const LESSON_GENERATION_TIMEOUT_MS = 120_000;
 export const QUIZ_GENERATION_TIMEOUT_MS = 120_000;
 export const TEACHER_GENERATION_TIMEOUT_MS = 120_000;
 
+/** Bounded read limits for installation-scoped study history. */
+export const DEFAULT_LIBRARY_ITEM_LIMIT = 20;
+export const MAX_LIBRARY_ITEM_LIMIT = 50;
+export const HOME_RECENT_LESSON_LIMIT = 3;
+
 /** Lesson-grounded teacher conversation limits. */
 export const MAX_TEACHER_QUESTION_CHARS = 1_200;
 export const MAX_TEACHER_ANSWER_CHARS = 3_000;

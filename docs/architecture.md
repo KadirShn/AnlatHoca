@@ -18,6 +18,22 @@ The Worker is the backend boundary. Routes validate public input and delegate or
 
 Shared request and response schemas live in `packages/contracts`. Both mobile and API use these Zod schemas to validate untrusted runtime data. Database records remain internal and are not added to public API contracts. AI prompts are owned by `packages/prompts`. Safe, non-secret shared constants belong in `packages/config`. Gemini Files upload, document analysis, and lesson generation use focused provider abstractions.
 
+## Current Library read flow
+
+```text
+Home (3 lessons) / Library (20 lessons + 20 documents)
+  -> POST /library with installationId and bounded limits
+  -> strict shared request validation
+  -> two parameterized D1 aggregate queries
+  -> newest-first public summaries
+  -> runtime-validated mobile response
+  -> existing cached lesson / analysis / ready routes
+```
+
+The Library repository scopes both queries by the anonymous installation identifier. A single lesson query joins analysis display data, quiz availability and latest-attempt metadata, and teacher-thread message counts; a single document query joins analysis metadata and completed-lesson counts. This avoids per-row database calls. Limits default to 20 and cannot exceed 50; ordering is deterministic by `created_at DESC, id DESC`.
+
+The endpoint is strictly read-only and has no AI-provider dependency. It does not create sessions, documents, lessons, quizzes, attempts, threads, or messages. Existing indexes support the ownership joins and foreign-key lookups for this bounded V1 result set, so no schema migration is required.
+
 ## Current document upload flow
 
 ```text

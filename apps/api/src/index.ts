@@ -3,6 +3,7 @@ import {
   guestSessionRequestSchema,
   generateQuizRequestSchema,
   installationIdSchema,
+  libraryRequestSchema,
   lessonDetailRequestSchema,
   lessonDurationSchema,
   lessonGenerationRequestSchema,
@@ -29,6 +30,7 @@ import { D1DocumentAnalysisRepository } from "./data/document-analysis-repositor
 import { D1DocumentLessonRepository } from "./data/document-lesson-repository";
 import { D1DocumentRepository } from "./data/document-repository";
 import { D1InstallationRepository } from "./data/installation-repository";
+import { D1LibraryRepository } from "./data/library-repository";
 import { D1LessonQuizRepository } from "./data/lesson-quiz-repository";
 import { D1QuizAttemptRepository } from "./data/quiz-attempt-repository";
 import { D1TeacherMessageRepository } from "./data/teacher-message-repository";
@@ -53,6 +55,7 @@ import {
   LessonGenerationError,
 } from "./services/lesson-generation-service";
 import { bootstrapGuestSession } from "./services/guest-session-service";
+import { getLibrary } from "./services/library-service";
 import {
   generateQuiz,
   getQuizAttemptDetail,
@@ -159,6 +162,38 @@ app.post(
       return context.json(response satisfies GuestSessionResponse);
     } catch (error) {
       logOperationalError("guest_installation_touch", error);
+      return context.json(internalErrorResponse(), 500);
+    }
+  },
+);
+
+app.post(
+  "/library",
+  bodyLimit({
+    maxSize: 1_024,
+    onError: (context) =>
+      context.json(errorResponse("INVALID_REQUEST", "Geçersiz istek."), 400),
+  }),
+  async (context) => {
+    const body = await readJsonBody(context.req.raw);
+    const request = libraryRequestSchema.safeParse(body);
+
+    if (!request.success) {
+      return context.json(
+        errorResponse("INVALID_REQUEST", "Geçersiz istek."),
+        400,
+      );
+    }
+
+    try {
+      const response = await getLibrary(
+        new D1LibraryRepository(context.env.DB),
+        request.data,
+      );
+
+      return context.json(response);
+    } catch (error) {
+      logOperationalError("library_read", error);
       return context.json(internalErrorResponse(), 500);
     }
   },
@@ -681,6 +716,8 @@ app.all("/session", (context) =>
     { Allow: "POST" },
   ),
 );
+
+app.all("/library", methodNotAllowed);
 
 app.all("/documents/upload", (context) =>
   context.json(

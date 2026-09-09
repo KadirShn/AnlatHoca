@@ -6,6 +6,8 @@ export { DocumentPickerCard } from "./document-picker-card";
 export { EmptyState } from "./empty-state";
 export { FeatureCard } from "./feature-card";
 export { InlineMessage } from "./inline-message";
+export { LibraryDocumentCard } from "./library-document-card";
+export { LibraryLessonCard } from "./library-lesson-card";
 export { ScreenContainer } from "./screen-container";
 export { SelectedDocumentCard } from "./selected-document-card";
 export { SectionHeader } from "./section-header";

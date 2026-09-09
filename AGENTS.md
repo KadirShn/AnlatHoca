@@ -91,6 +91,12 @@ The mobile client communicates with the deployed Cloudflare Worker API. The API 
 - Never silently truncate lesson content to fit a presentation layout; split it deterministically and preserve its meaning and order.
 - Future TTS should attach narration to deterministic slide narration text instead of regenerating educational content.
 - Presentation accessibility and readable text scaling take priority over forcing every slide onto one physical screen.
+- Library/history reads must remain installation-scoped, bounded, deterministic, and read-only.
+- Opening Home or Library must never generate or regenerate AI content.
+- Library summaries may expose only public display metadata; never expose provider, model, prompt, schema, or raw generated payload fields.
+- Reopening a lesson or analyzed document must use the existing persisted detail endpoints.
+- Avoid N+1 database access in collection endpoints; prefer focused joins, aggregation, or bounded batches.
+- Home recent lessons must stay capped at three unless an explicit product requirement changes it.
 - Hocaya Sor answers must be grounded only in the persisted lesson; never call Gemini Files or reload the source PDF for teacher conversations.
 - Treat skipped lesson topics only as explicitly not covered; never pass them to the model as factual teaching content.
 - Persist teacher exchanges only after a valid provider response, and write the user/assistant pair atomically so failures cannot leave misleading half-conversations.

@@ -1,20 +1,32 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from "expo-router";
-import { StyleSheet, View } from "react-native";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
+import {
+  HOME_RECENT_LESSON_LIMIT,
+} from "@anlat-hoca/config";
 
 import {
   AppText,
   EmptyState,
   FeatureCard,
+  InlineMessage,
+  LibraryLessonCard,
+  AppButton,
   ScreenContainer,
   SectionHeader,
 } from "@/components";
+import { useLibraryData } from "@/hooks/use-library-data";
 import { colors, radius, spacing } from "@/theme";
 
 const iconSize = 25;
 
 export function HomeScreen() {
   const router = useRouter();
+  const { data, error, isLoading, retry } = useLibraryData({
+    lessonLimit: HOME_RECENT_LESSON_LIMIT,
+    documentLimit: 1,
+  });
+  const recentLessons = data?.lessons ?? [];
 
   return (
     <ScreenContainer>
@@ -79,19 +91,50 @@ export function HomeScreen() {
 
       <View style={styles.section}>
         <SectionHeader title="Son Dersler" />
-        <EmptyState
-          actionLabel="İlk Notunu Yükle"
-          description="İlk notunu yükleyerek çalışmaya başlayabilirsin."
-          icon={
-            <Ionicons
-              color={colors.primary}
-              name="library-outline"
-              size={30}
-            />
-          }
-          onActionPress={() => router.push("/document/upload")}
-          title="Henüz bir ders oluşturmadın."
-        />
+        {isLoading && data === null ? (
+          <View
+            accessibilityLiveRegion="polite"
+            style={styles.recentLoading}
+          >
+            <ActivityIndicator color={colors.primary} />
+            <AppText tone="muted">Son dersler yükleniyor.</AppText>
+          </View>
+        ) : error && data === null ? (
+          <View style={styles.recentError}>
+            <InlineMessage message={error} tone="danger" />
+            <AppButton label="Tekrar Dene" onPress={() => void retry()} />
+          </View>
+        ) : recentLessons.length === 0 ? (
+          <EmptyState
+            actionLabel="İlk Dersini Oluştur"
+            description="İlk notunu yükleyerek çalışmaya başlayabilirsin."
+            icon={
+              <Ionicons
+                color={colors.primary}
+                name="library-outline"
+                size={30}
+              />
+            }
+            onActionPress={() => router.push("/document/upload")}
+            title="Henüz bir ders oluşturmadın."
+          />
+        ) : (
+          <View style={styles.cardList}>
+            {error ? <InlineMessage message={error} tone="danger" /> : null}
+            {recentLessons.map((lesson) => (
+              <LibraryLessonCard
+                key={lesson.id}
+                lesson={lesson}
+                onPress={() =>
+                  router.push({
+                    pathname: "/lesson/[lessonId]",
+                    params: { lessonId: lesson.id },
+                  })
+                }
+              />
+            ))}
+          </View>
+        )}
       </View>
     </ScreenContainer>
   );
@@ -135,6 +178,18 @@ const styles = StyleSheet.create({
     gap: spacing.lg,
   },
   cardList: {
+    gap: spacing.md,
+  },
+  recentLoading: {
+    alignItems: "center",
+    backgroundColor: colors.surface,
+    borderCurve: "continuous",
+    borderRadius: radius.lg,
+    flexDirection: "row",
+    gap: spacing.md,
+    padding: spacing.xl,
+  },
+  recentError: {
     gap: spacing.md,
   },
 });

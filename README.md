@@ -2,7 +2,7 @@
 
 Anlat Hoca is an AI-powered mobile study application being built with Expo and Cloudflare Workers.
 
-The repository supports PDF selection and transfer, temporary Gemini Files preparation, real AI document analysis, topic extraction, time-aware 10/30/60 minute lesson generation, persistent D1 caching, interactive presentation mode, lesson-grounded multiple-choice quizzes, and persisted lesson-scoped **Hocaya Sor** conversations. The Worker and D1 backend are deployed to Cloudflare production. Voice/TTS, exam packs, authentication, permanent raw-file storage, and store distribution are not implemented.
+The repository supports PDF selection and transfer, temporary Gemini Files preparation, real AI document analysis, topic extraction, time-aware 10/30/60 minute lesson generation, persistent D1 caching, interactive presentation mode, lesson-grounded multiple-choice quizzes, persisted lesson-scoped **Hocaya Sor** conversations, and an installation-scoped Library for reopening saved work. The Worker and D1 backend are deployed to Cloudflare production. Voice/TTS, exam packs, authentication, permanent raw-file storage, and store distribution are not implemented.
 
 ## Technology stack
 
@@ -95,3 +95,9 @@ The learner explicitly opens **Beni Sına** from a persisted lesson. The Worker 
 Ten, 30, and 60 minute lessons produce exactly 5, 8, and 10 questions. The initial mobile response contains questions and four options only; correct option indexes and explanations remain in the internal D1 quiz entity until submission. Submission makes no AI call: the Worker grades deterministically, persists a new immutable attempt, and aggregates incorrect answers by original lesson section.
 
 From a persisted lesson, **Hocaya Sor** opens one installation-scoped conversation. Answers use only validated lesson content, retain up to six recent conversation turns, and explicitly decline questions unsupported by the lesson. Valid user/assistant pairs are persisted together; reopening history never calls Gemini. The Worker independently configures `GEMINI_TEACHER_MODEL`, validates structured answers and referenced lesson sections, and enforces a 30-question UTC-day installation limit.
+
+## Current Library
+
+`POST /library` reads a bounded, newest-first summary of the current installation's saved lessons and documents from D1. It contains only public display metadata such as document and analysis titles, lesson duration, latest quiz score when available, and teacher-thread/message counts. Library reads never call Gemini, create rows, or regenerate content.
+
+Home requests at most three recent lessons. The Library tab requests at most 20 lessons and 20 documents, supports pull-to-refresh, and reopens existing lesson details or cached analyses. Uploaded but not yet analyzed documents open the explicit ready flow; selecting a Library item never starts analysis automatically.
