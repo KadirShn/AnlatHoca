@@ -12,3 +12,9 @@ export {
   QUIZ_GENERATION_PROMPT_VERSION,
   type QuizGenerationPromptInput,
 } from "./quiz-generation";
+export {
+  buildTeacherAnswerPrompt,
+  TEACHER_ANSWER_PROMPT_VERSION,
+  type TeacherAnswerPromptInput,
+  type TeacherConversationMessage,
+} from "./teacher-answer";

@@ -2,7 +2,7 @@
 
 Anlat Hoca is an AI-powered mobile study application being built with Expo and Cloudflare Workers.
 
-The repository supports PDF selection and transfer, temporary Gemini Files preparation, real AI document analysis, topic extraction, time-aware 10/30/60 minute lesson generation, persistent D1 caching, interactive presentation mode, and lesson-grounded multiple-choice quizzes with server-side grading and weak-section feedback. The Worker and D1 backend are deployed to Cloudflare production. Ask Teacher, voice/TTS, exam packs, authentication, permanent raw-file storage, and store distribution are not implemented.
+The repository supports PDF selection and transfer, temporary Gemini Files preparation, real AI document analysis, topic extraction, time-aware 10/30/60 minute lesson generation, persistent D1 caching, interactive presentation mode, lesson-grounded multiple-choice quizzes, and persisted lesson-scoped **Hocaya Sor** conversations. The Worker and D1 backend are deployed to Cloudflare production. Voice/TTS, exam packs, authentication, permanent raw-file storage, and store distribution are not implemented.
 
 ## Technology stack
 
@@ -18,8 +18,8 @@ The repository supports PDF selection and transfer, temporary Gemini Files prepa
 
 ```text
 apps/
-  mobile/      Expo mobile application, document/lesson/quiz screens, API client, and bootstrap state
-  api/         Worker API, Gemini providers, D1 migrations, grading services, and repositories
+  mobile/      Expo mobile application, document/lesson/quiz/teacher screens, API client, and bootstrap state
+  api/         Worker API, Gemini providers, D1 migrations, learning services, and repositories
 packages/
   contracts/   Shared runtime schemas and TypeScript API contracts
   prompts/     AI prompt ownership and conventions
@@ -56,6 +56,7 @@ corepack pnpm db:migrate:remote
 corepack pnpm deploy:api
 corepack pnpm typecheck
 corepack pnpm lint
+corepack pnpm test
 corepack pnpm --filter @anlat-hoca/mobile exec pnpm dlx expo-doctor@latest
 corepack pnpm --filter @anlat-hoca/api generate-types
 corepack pnpm --filter @anlat-hoca/api build
@@ -92,3 +93,5 @@ Presentation navigation supports native horizontal paging plus explicit previous
 The learner explicitly opens **Beni Sına** from a persisted lesson. The Worker supplies only that validated lesson to the independently configured `GEMINI_QUIZ_MODEL`, validates the structured Turkish multiple-choice output, assigns stable question IDs, and caches one current quiz per lesson/schema/prompt/model identity.
 
 Ten, 30, and 60 minute lessons produce exactly 5, 8, and 10 questions. The initial mobile response contains questions and four options only; correct option indexes and explanations remain in the internal D1 quiz entity until submission. Submission makes no AI call: the Worker grades deterministically, persists a new immutable attempt, and aggregates incorrect answers by original lesson section.
+
+From a persisted lesson, **Hocaya Sor** opens one installation-scoped conversation. Answers use only validated lesson content, retain up to six recent conversation turns, and explicitly decline questions unsupported by the lesson. Valid user/assistant pairs are persisted together; reopening history never calls Gemini. The Worker independently configures `GEMINI_TEACHER_MODEL`, validates structured answers and referenced lesson sections, and enforces a 30-question UTC-day installation limit.

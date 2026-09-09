@@ -6,6 +6,7 @@ import {
   lessonDetailRequestSchema,
   lessonDurationSchema,
   lessonGenerationRequestSchema,
+  teacherThreadRequestSchema,
   type ApiErrorResponse,
   type ApiHealthResponse,
   type ApiInfoResponse,
@@ -22,6 +23,7 @@ import {
   resolveGeminiAnalysisModel,
   resolveGeminiLessonModel,
   resolveGeminiQuizModel,
+  resolveGeminiTeacherModel,
 } from "./config/ai";
 import { D1DocumentAnalysisRepository } from "./data/document-analysis-repository";
 import { D1DocumentLessonRepository } from "./data/document-lesson-repository";
@@ -29,10 +31,13 @@ import { D1DocumentRepository } from "./data/document-repository";
 import { D1InstallationRepository } from "./data/installation-repository";
 import { D1LessonQuizRepository } from "./data/lesson-quiz-repository";
 import { D1QuizAttemptRepository } from "./data/quiz-attempt-repository";
+import { D1TeacherMessageRepository } from "./data/teacher-message-repository";
+import { D1TeacherThreadRepository } from "./data/teacher-thread-repository";
 import { GeminiFilesProvider } from "./providers/files/gemini-files-provider";
 import { GeminiDocumentAnalysisProvider } from "./providers/ai/gemini-document-analysis-provider";
 import { GeminiLessonGenerationProvider } from "./providers/ai/gemini-lesson-generation-provider";
 import { GeminiQuizGenerationProvider } from "./providers/ai/gemini-quiz-generation-provider";
+import { GeminiTeacherAnswerProvider } from "./providers/ai/gemini-teacher-answer-provider";
 import {
   analyzeDocument,
   DocumentAnalysisError,
@@ -55,6 +60,12 @@ import {
   QuizGenerationError,
   submitQuiz,
 } from "./services/quiz-generation-service";
+import {
+  getOrCreateTeacherThread,
+  getTeacherThreadDetail,
+  sendTeacherMessage,
+  TeacherConversationError,
+} from "./services/teacher-conversation-service";
 
 type AppEnvironment = { Bindings: Env };
 
@@ -415,6 +426,114 @@ app.post(
 );
 
 app.post(
+  "/lessons/:lessonId/teacher/thread",
+  bodyLimit({
+    maxSize: 1_024,
+    onError: (context) =>
+      context.json(errorResponse("INVALID_REQUEST", "Geçersiz istek."), 400),
+  }),
+  async (context) => {
+    const body = await readJsonBody(context.req.raw);
+    const request = teacherThreadRequestSchema.safeParse(body);
+
+    if (!request.success) {
+      return context.json(
+        errorResponse("INVALID_REQUEST", "Geçersiz istek."),
+        400,
+      );
+    }
+
+    try {
+      const response = await getOrCreateTeacherThread({
+        lessonId: context.req.param("lessonId"),
+        installationId: request.data.installationId,
+        lessonRepository: new D1DocumentLessonRepository(context.env.DB),
+        threadRepository: new D1TeacherThreadRepository(context.env.DB),
+        messageRepository: new D1TeacherMessageRepository(context.env.DB),
+      });
+
+      return context.json(response);
+    } catch (error) {
+      return handleTeacherError(context, error, "teacher_thread_open");
+    }
+  },
+);
+
+app.post(
+  "/lessons/:lessonId/teacher/messages",
+  bodyLimit({
+    maxSize: 4_096,
+    onError: (context) =>
+      context.json(
+        errorResponse(
+          "INVALID_TEACHER_MESSAGE",
+          "Sorunu 1–1200 karakter arasında yazarak tekrar dene.",
+        ),
+        400,
+      ),
+  }),
+  async (context) => {
+    const body = await readJsonBody(context.req.raw);
+    const model = resolveGeminiTeacherModel(
+      context.env.GEMINI_TEACHER_MODEL,
+    );
+    const apiKey = context.env.GEMINI_API_KEY?.trim();
+    const provider = apiKey
+      ? new GeminiTeacherAnswerProvider(apiKey, model)
+      : undefined;
+
+    try {
+      const response = await sendTeacherMessage({
+        lessonId: context.req.param("lessonId"),
+        body,
+        lessonRepository: new D1DocumentLessonRepository(context.env.DB),
+        threadRepository: new D1TeacherThreadRepository(context.env.DB),
+        messageRepository: new D1TeacherMessageRepository(context.env.DB),
+        teacherProvider: provider,
+      });
+
+      return context.json(response, 201);
+    } catch (error) {
+      return handleTeacherError(context, error, "teacher_message_send");
+    }
+  },
+);
+
+app.post(
+  "/teacher-threads/:threadId/detail",
+  bodyLimit({
+    maxSize: 1_024,
+    onError: (context) =>
+      context.json(errorResponse("INVALID_REQUEST", "Geçersiz istek."), 400),
+  }),
+  async (context) => {
+    const body = await readJsonBody(context.req.raw);
+    const request = teacherThreadRequestSchema.safeParse(body);
+
+    if (!request.success) {
+      return context.json(
+        errorResponse("INVALID_REQUEST", "Geçersiz istek."),
+        400,
+      );
+    }
+
+    try {
+      const response = await getTeacherThreadDetail({
+        threadId: context.req.param("threadId"),
+        installationId: request.data.installationId,
+        lessonRepository: new D1DocumentLessonRepository(context.env.DB),
+        threadRepository: new D1TeacherThreadRepository(context.env.DB),
+        messageRepository: new D1TeacherMessageRepository(context.env.DB),
+      });
+
+      return context.json(response);
+    } catch (error) {
+      return handleTeacherError(context, error, "teacher_thread_detail");
+    }
+  },
+);
+
+app.post(
   "/lessons/:lessonId/quiz",
   bodyLimit({
     maxSize: 1_024,
@@ -604,6 +723,9 @@ app.all("/lessons/:lessonId/detail", (context) =>
 );
 
 app.all("/lessons/:lessonId/quiz", methodNotAllowed);
+app.all("/lessons/:lessonId/teacher/thread", methodNotAllowed);
+app.all("/lessons/:lessonId/teacher/messages", methodNotAllowed);
+app.all("/teacher-threads/:threadId/detail", methodNotAllowed);
 app.all("/quizzes/:quizId/detail", methodNotAllowed);
 app.all("/quizzes/:quizId/submit", methodNotAllowed);
 app.all("/quiz-attempts/:attemptId/detail", methodNotAllowed);
@@ -711,6 +833,26 @@ function handleQuizError(
   operation: string,
 ) {
   if (error instanceof QuizGenerationError) {
+    if (error.status >= 500 && error.code !== "AI_NOT_CONFIGURED") {
+      logOperationalError(operation, error);
+    }
+
+    return context.json(
+      errorResponse(error.code, error.publicMessage),
+      error.status,
+    );
+  }
+
+  logOperationalError(operation, error);
+  return context.json(internalErrorResponse(), 500);
+}
+
+function handleTeacherError(
+  context: Context<AppEnvironment>,
+  error: unknown,
+  operation: string,
+) {
+  if (error instanceof TeacherConversationError) {
     if (error.status >= 500 && error.code !== "AI_NOT_CONFIGURED") {
       logOperationalError(operation, error);
     }

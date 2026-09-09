@@ -188,6 +188,35 @@ export function LessonDetailScreen() {
         />
       </View>
 
+      <View style={styles.teacherCta}>
+        <View style={styles.presentationCtaCopy}>
+          <View style={styles.blockHeading}>
+            <Ionicons color={colors.primary} name="chatbubbles-outline" size={23} />
+            <AppText variant="heading3">Hocaya Sor</AppText>
+          </View>
+          <AppText tone="muted">
+            Yalnızca bu dersin içeriğine dayanarak anlamadığın yerleri sor.
+          </AppText>
+        </View>
+        <AppButton
+          accessibilityLabel="Bu ders hakkında hocaya soru sor"
+          label="Hocaya Sor"
+          leftIcon={
+            <Ionicons
+              color={colors.textOnPrimary}
+              name="chatbubble-ellipses-outline"
+              size={21}
+            />
+          }
+          onPress={() =>
+            router.push({
+              pathname: "/lesson/[lessonId]/teacher",
+              params: { lessonId: lesson.id },
+            })
+          }
+        />
+      </View>
+
       <View style={styles.overviewCard}>
         <AppText variant="heading3">Derse genel bakış</AppText>
         <AppText selectable tone="muted" style={styles.readableText}>
@@ -383,6 +412,15 @@ const styles = StyleSheet.create({
   quizCta: {
     backgroundColor: colors.surface,
     borderColor: colors.primary,
+    borderCurve: "continuous",
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    gap: spacing.lg,
+    padding: spacing.xl,
+  },
+  teacherCta: {
+    backgroundColor: colors.accentSoft,
+    borderColor: colors.accent,
     borderCurve: "continuous",
     borderRadius: radius.lg,
     borderWidth: 1,

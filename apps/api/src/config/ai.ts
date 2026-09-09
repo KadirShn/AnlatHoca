@@ -1,6 +1,7 @@
 export const DEFAULT_GEMINI_ANALYSIS_MODEL = "gemini-3.6-flash";
 export const DEFAULT_GEMINI_LESSON_MODEL = "gemini-3.6-flash";
 export const DEFAULT_GEMINI_QUIZ_MODEL = "gemini-3.6-flash";
+export const DEFAULT_GEMINI_TEACHER_MODEL = "gemini-3.6-flash";
 
 export function resolveGeminiAnalysisModel(
   configuredModel: string | undefined,
@@ -18,6 +19,12 @@ export function resolveGeminiQuizModel(
   configuredModel: string | undefined,
 ): string {
   return resolveGeminiModel(configuredModel, DEFAULT_GEMINI_QUIZ_MODEL);
+}
+
+export function resolveGeminiTeacherModel(
+  configuredModel: string | undefined,
+): string {
+  return resolveGeminiModel(configuredModel, DEFAULT_GEMINI_TEACHER_MODEL);
 }
 
 function resolveGeminiModel(

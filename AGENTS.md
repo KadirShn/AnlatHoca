@@ -4,7 +4,7 @@ Future Codex agents must read this file before making any repository change. The
 
 ## Project
 
-Anlat Hoca is an AI-powered React Native study application. PDF transfer and runtime-validated document analysis are implemented and the backend is deployed to Cloudflare production; later learning features remain intentionally out of scope.
+Anlat Hoca is an AI-powered React Native study application. PDF transfer, runtime-validated document analysis, lessons, presentations, quizzes, and lesson-grounded teacher conversations are implemented; the backend is deployed to Cloudflare production.
 
 ## Architecture
 
@@ -91,6 +91,13 @@ The mobile client communicates with the deployed Cloudflare Worker API. The API 
 - Never silently truncate lesson content to fit a presentation layout; split it deterministically and preserve its meaning and order.
 - Future TTS should attach narration to deterministic slide narration text instead of regenerating educational content.
 - Presentation accessibility and readable text scaling take priority over forcing every slide onto one physical screen.
+- Hocaya Sor answers must be grounded only in the persisted lesson; never call Gemini Files or reload the source PDF for teacher conversations.
+- Treat skipped lesson topics only as explicitly not covered; never pass them to the model as factual teaching content.
+- Persist teacher exchanges only after a valid provider response, and write the user/assistant pair atomically so failures cannot leave misleading half-conversations.
+- Teacher history and thread detail reads must never trigger AI generation.
+- Keep teacher model configuration independent from analysis, lesson, and quiz models.
+- Enforce teacher question length, recent-context, and UTC-day usage limits on the Worker; mobile checks are UX only.
+- Never expose teacher prompt versions, model names, raw provider responses, or provider metadata through public contracts.
 - Quiz questions must be grounded only in the persisted lesson.
 - Never generate quiz questions from lesson `skippedTopics`.
 - Public quiz responses must never expose correct answers, explanations, or equivalent answer-key data before submission.

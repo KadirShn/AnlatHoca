@@ -12,3 +12,8 @@ export {
   getQuizDetail,
   submitQuiz,
 } from "./quizzes";
+export {
+  getTeacherThreadDetail,
+  openTeacherThread,
+  sendTeacherMessage,
+} from "./teacher";

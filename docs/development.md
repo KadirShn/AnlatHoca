@@ -27,7 +27,7 @@ GEMINI_API_KEY=replace_with_your_gemini_api_key
 
 Without the local key, the Worker still starts and its root, health, and session endpoints work. A valid PDF upload returns the structured `AI_NOT_CONFIGURED` response.
 
-The non-secret `GEMINI_ANALYSIS_MODEL`, `GEMINI_LESSON_MODEL`, and `GEMINI_QUIZ_MODEL` Worker variables independently default to `gemini-3.6-flash` in `wrangler.jsonc`. Change only the relevant server-side setting to test an approved compatible model; never expose these settings through mobile configuration.
+The non-secret `GEMINI_ANALYSIS_MODEL`, `GEMINI_LESSON_MODEL`, `GEMINI_QUIZ_MODEL`, and `GEMINI_TEACHER_MODEL` Worker variables independently default to `gemini-3.6-flash` in `wrangler.jsonc`. Change only the relevant server-side setting to test an approved compatible model; never expose these settings through mobile configuration.
 
 ## Install dependencies
 
@@ -94,6 +94,15 @@ corepack pnpm --filter @anlat-hoca/api exec wrangler d1 execute DB --local --com
 ```
 
 `lesson_quizzes.questions_json` contains the internal answer key and must never be copied directly into an API response or logs. `quiz_attempts` stores selected-answer JSON and deterministic result totals, not duplicated quiz content.
+
+Inspect teacher conversation metadata without printing message content:
+
+```powershell
+corepack pnpm --filter @anlat-hoca/api exec wrangler d1 execute DB --local --command "SELECT id, lesson_id, installation_id, created_at, updated_at FROM teacher_threads ORDER BY created_at;"
+corepack pnpm --filter @anlat-hoca/api exec wrangler d1 execute DB --local --command "SELECT thread_id, sequence, role, prompt_version, model, created_at FROM teacher_messages ORDER BY thread_id, sequence;"
+```
+
+`teacher_messages` stores validated conversation text and, for assistant rows, resolved related-section/follow-up JSON plus internal prompt/model labels. It does not store prompt bodies, raw provider responses, chain-of-thought, PDF data, or Gemini Files references. Avoid printing conversation content in routine diagnostics.
 
 Wrangler persists local binding data under `apps/api/.wrangler/`, which is ignored by Git. Although the checked-in `DB` binding names the production database, `wrangler dev` and commands with `--local` use isolated local state. Do not run remote migration or deployment commands as part of normal local development.
 
@@ -162,11 +171,14 @@ After analysis, press **Bu belgeyle çalış**, choose exactly 10, 30, or 60 min
 
 From a stored lesson, press **Beni Sına**. A 10, 30, or 60 minute lesson requests exactly 5, 8, or 10 Turkish multiple-choice questions. Generation uses a 120-second mobile timeout; cache detail, submission, and attempt detail use the ordinary shorter timeout. The quiz screen shows no correctness feedback until every question is answered and **Quizi Bitir** is pressed. Submission is deterministic and makes no Gemini call. Verify previous/next navigation, answer preservation, persisted result reopening, weak-section copy, and **Quizi Tekrar Çöz** reusing the same cached quiz.
 
+From a stored lesson, press **Hocaya Sor**. Opening the screen creates or reads the lesson's installation-scoped thread from D1 without calling Gemini. Ask a question of at most 1200 trimmed characters; generation uses the 120-second mobile timeout and is never retried automatically. Verify empty, loading, success, failure, persisted-history, related-section, follow-up-chip, keyboard, and daily-limit states. Answers must remain within the lesson, and unsupported topics must receive an honest refusal. Reopening the screen must show the same chronological messages without a model call.
+
 ## Quality checks
 
 ```powershell
 corepack pnpm typecheck
 corepack pnpm lint
+corepack pnpm --filter @anlat-hoca/api test
 corepack pnpm --filter @anlat-hoca/mobile exec expo install --check
 corepack pnpm --filter @anlat-hoca/mobile exec pnpm dlx expo-doctor@latest
 corepack pnpm --filter @anlat-hoca/api build
@@ -199,7 +211,7 @@ corepack pnpm deploy:api
 
 Always apply pending production migrations before deploying Worker code that depends on the new schema. Afterward, list migrations again and inspect only the non-sensitive schema/cache metadata needed for validation.
 
-Migration `0005_create_lesson_quizzes.sql` adds the internal quiz cache and immutable attempt tables. Review the remote pending list and confirm that only this migration is pending before applying it. Preserve the existing `anlat-hoca-api` Worker, production D1 database, and `GEMINI_API_KEY` secret.
+Migration `0006_create_teacher_conversations.sql` adds lesson-scoped teacher threads and deterministically ordered messages. Review the remote pending list and confirm that only the expected migration is pending before applying it. Preserve the existing `anlat-hoca-api` Worker, production D1 database, and `GEMINI_API_KEY` secret. A production Hocaya Sor smoke test creates conversation rows and invokes Gemini, so it requires fresh explicit production-write permission.
 
 `--local` uses Wrangler state under `apps/api/.wrangler` and is the default for ordinary `wrangler dev` work. `--remote` targets the production D1 database. Never substitute one for the other casually.
 

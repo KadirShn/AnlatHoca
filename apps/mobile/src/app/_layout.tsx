@@ -48,6 +48,10 @@ export default function RootLayout() {
           options={{ title: "Beni Sına" }}
         />
         <Stack.Screen
+          name="lesson/[lessonId]/teacher"
+          options={{ title: "Hocaya Sor" }}
+        />
+        <Stack.Screen
           name="quiz/[attemptId]/result"
           options={{ title: "Quiz Sonucu" }}
         />

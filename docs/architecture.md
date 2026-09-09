@@ -122,6 +122,28 @@ Quiz generation retries only clearly transient Gemini failures (`429`, `500`, `5
 
 The quiz source is the validated persisted lesson; no temporary PDF is needed and `skippedTopics` is intentionally excluded. The cache identity is `(lesson_id, schema_version, prompt_version, model)`. One internal quiz can have many immutable attempts. Opening, retrying, submitting, or reopening a result never calls Gemini.
 
+## Current Hocaya Sor flow
+
+```text
+/lesson/:lessonId
+  -> Hocaya Sor
+  -> POST /lessons/:lessonId/teacher/thread (D1 only)
+  -> persisted chronological history
+  -> explicit POST /lessons/:lessonId/teacher/messages
+  -> ownership + 30-question UTC-day limit
+  -> persisted lesson + at most six recent conversation turns
+  -> versioned lesson-only prompt + Gemini structured JSON
+  -> Zod + related-section semantic validation
+  -> atomic user/assistant D1 batch
+  -> assistant answer, related sections, and follow-up suggestions
+```
+
+`GEMINI_TEACHER_MODEL` is independent from analysis, lesson, and quiz settings and defaults to `gemini-3.6-flash`. The prompt version is `v1`. The source PDF and Gemini Files API are never used: the validated persisted lesson is the sole teaching source. `skippedTopics` is labeled only as content not included in the lesson, so it may support an honest refusal but never factual teaching.
+
+Each installation has one `teacher_threads` row per lesson. `teacher_messages.sequence` provides deterministic ordering independent of timestamp precision. Only the most recent six user/assistant turns are sent as conversational context. The provider must return a 1–3000 character answer, zero to three valid section indexes, and zero to three short follow-up questions. Public responses map indexes to lesson section titles and omit model/prompt metadata.
+
+The Worker enforces a maximum 1200-character trimmed question and 30 persisted user questions per installation per UTC day. A provider call occurs before persistence; after validation, the user and assistant messages are written in one D1 batch. Provider failures therefore leave no dangling user message and do not consume the persisted quota. Opening a thread or reading `/teacher-threads/:threadId/detail` is D1-only and never calls Gemini.
+
 `lesson_quizzes.questions_json` is an internal entity containing correct option indexes, explanations, and source section indexes. Public generation/detail responses deliberately map it to question IDs, text, and four options only. Submission accepts selected option indexes only; the Worker calculates the rounded integer score and sorts review sections by wrong-answer count, then original lesson order.
 
 ## Current bootstrap flow
@@ -141,7 +163,7 @@ App starts
 
 ## Stored data and privacy boundary
 
-D1 stores the app-generated installation UUID, document display metadata, internal temporary provider references, validated analysis and lesson artifacts, validated internal quizzes, and minimal immutable quiz attempts. Quiz attempts contain the installation scope, selected answers, deterministic score totals, and weak-section aggregation; they do not duplicate lesson or quiz bodies. Persistence does not contain PDF bytes, prompt bodies, local URIs, raw Gemini responses, chain-of-thought, IP addresses, request headers, hardware or advertising identifiers, phone details, names, email addresses, profiles, or credentials.
+D1 stores the app-generated installation UUID, document display metadata, internal temporary provider references, validated analysis and lesson artifacts, validated internal quizzes, minimal immutable quiz attempts, and validated teacher conversation messages. Teacher assistant rows retain only the answer, resolved public section metadata, suggested follow-ups, and internal prompt/model version labels. Persistence does not contain PDF bytes, prompt bodies, local URIs, raw Gemini responses, chain-of-thought, IP addresses, request headers, hardware or advertising identifiers, phone details, names, email addresses, profiles, or credentials.
 
 Gemini Files API temporarily stores the original PDF and currently deletes uploaded files automatically according to its service behavior. The returned expiration timestamp is persisted only when supplied by Gemini; the application does not invent one. If D1 insertion fails after upload, the service attempts to delete the temporary provider file without replacing the original error.
 
@@ -155,11 +177,11 @@ Schema changes are versioned in `apps/api/migrations` and applied with Wrangler'
 
 ## Current capabilities
 
-- The mobile app contains local PDF selection, real multipart upload UX, explicit analysis UX, duration selection, scrollable lesson reading, interactive presentation mode, one-question-at-a-time quiz solving, and persisted result review.
+- The mobile app contains local PDF selection, real multipart upload UX, explicit analysis UX, duration selection, scrollable lesson reading, interactive presentation mode, one-question-at-a-time quiz solving, persisted result review, and lesson-scoped teacher chat.
 - The mobile API URL has one source of truth and missing configuration degrades to a visible, retryable state without blocking navigation.
-- The API exposes explicit analysis, lesson, and quiz generation plus D1-only detail, grading, and attempt-reopen endpoints.
-- D1 persists guest installations, document metadata/internal provider references, validated analyses, versioned lesson/quiz cache entries, and immutable quiz attempts; it never stores raw PDFs.
-- Gemini document analysis, lesson generation, and lesson-grounded quiz generation run behind separate provider abstractions. Presentation mode is derived locally from cached lessons. Ask Teacher, voice/TTS, authentication, R2 storage, and store distribution are not configured.
+- The API exposes explicit analysis, lesson, quiz, and teacher-answer generation plus D1-only detail, grading, history, and attempt-reopen endpoints.
+- D1 persists guest installations, document metadata/internal provider references, validated analyses, versioned lesson/quiz cache entries, immutable quiz attempts, and ordered teacher conversations; it never stores raw PDFs.
+- Gemini document analysis, lesson generation, lesson-grounded quiz generation, and lesson-grounded teacher answers run behind separate provider abstractions. Presentation mode is derived locally from cached lessons. Voice/TTS, authentication, R2 storage, and store distribution are not configured.
 
 ## Later integrations
 

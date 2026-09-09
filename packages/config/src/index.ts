@@ -15,6 +15,13 @@ export const DOCUMENT_UPLOAD_TIMEOUT_MS = 120_000;
 export const DOCUMENT_ANALYSIS_TIMEOUT_MS = 120_000;
 export const LESSON_GENERATION_TIMEOUT_MS = 120_000;
 export const QUIZ_GENERATION_TIMEOUT_MS = 120_000;
+export const TEACHER_GENERATION_TIMEOUT_MS = 120_000;
+
+/** Lesson-grounded teacher conversation limits. */
+export const MAX_TEACHER_QUESTION_CHARS = 1_200;
+export const MAX_TEACHER_ANSWER_CHARS = 3_000;
+export const MAX_TEACHER_CONTEXT_TURNS = 6;
+export const MAX_TEACHER_QUESTIONS_PER_UTC_DAY = 30;
 
 /** Exact V1 quiz sizes for each supported lesson study budget. */
 export const QUIZ_QUESTION_COUNTS = {

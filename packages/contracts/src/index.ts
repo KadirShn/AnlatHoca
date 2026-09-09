@@ -332,6 +332,84 @@ export type QuizAttemptDetailRequest = GenerateQuizRequest;
 export const quizAttemptDetailResponseSchema = quizSubmissionResponseSchema;
 export type QuizAttemptDetailResponse = QuizSubmissionResponse;
 
+export const teacherThreadIdSchema = z.string().uuid();
+export const teacherMessageIdSchema = z.string().uuid();
+export const teacherMessageRoleSchema = z.enum(["user", "assistant"]);
+
+export const teacherRelatedSectionSchema = z
+  .object({
+    sectionIndex: z.number().int().nonnegative(),
+    title: boundedText(1, 120),
+  })
+  .strict();
+
+export type TeacherRelatedSection = z.infer<
+  typeof teacherRelatedSectionSchema
+>;
+
+export const teacherMessageSchema = z
+  .object({
+    id: teacherMessageIdSchema,
+    role: teacherMessageRoleSchema,
+    content: boundedText(1, 3_000),
+    relatedSections: z.array(teacherRelatedSectionSchema).max(3),
+    suggestedFollowUps: z.array(boundedText(1, 180)).max(3),
+    createdAt: z.string().datetime({ offset: true }),
+  })
+  .strict();
+
+export type TeacherMessage = z.infer<typeof teacherMessageSchema>;
+
+export const teacherThreadSchema = z
+  .object({
+    id: teacherThreadIdSchema,
+    lessonId: lessonIdSchema,
+    lessonTitle: boundedText(1, 160),
+    messages: z.array(teacherMessageSchema),
+  })
+  .strict();
+
+export type TeacherThread = z.infer<typeof teacherThreadSchema>;
+
+export const teacherThreadRequestSchema = z
+  .object({ installationId: installationIdSchema })
+  .strict();
+
+export type TeacherThreadRequest = z.infer<
+  typeof teacherThreadRequestSchema
+>;
+
+export const teacherThreadResponseSchema = z
+  .object({ thread: teacherThreadSchema })
+  .strict();
+
+export type TeacherThreadResponse = z.infer<
+  typeof teacherThreadResponseSchema
+>;
+
+export const teacherMessageRequestSchema = z
+  .object({
+    installationId: installationIdSchema,
+    message: boundedText(1, 1_200),
+  })
+  .strict();
+
+export type TeacherMessageRequest = z.infer<
+  typeof teacherMessageRequestSchema
+>;
+
+export const teacherMessageResponseSchema = z
+  .object({
+    threadId: teacherThreadIdSchema,
+    userMessage: teacherMessageSchema,
+    message: teacherMessageSchema,
+  })
+  .strict();
+
+export type TeacherMessageResponse = z.infer<
+  typeof teacherMessageResponseSchema
+>;
+
 export const apiErrorCodeSchema = z.enum([
   "INVALID_REQUEST",
   "FILE_TOO_LARGE",
@@ -354,6 +432,10 @@ export const apiErrorCodeSchema = z.enum([
   "QUIZ_GENERATION_FAILED",
   "QUIZ_IN_PROGRESS",
   "INVALID_QUIZ_SUBMISSION",
+  "TEACHER_THREAD_NOT_FOUND",
+  "INVALID_TEACHER_MESSAGE",
+  "TEACHER_RESPONSE_FAILED",
+  "USAGE_LIMIT_REACHED",
   "METHOD_NOT_ALLOWED",
   "NOT_FOUND",
   "INTERNAL_ERROR",
