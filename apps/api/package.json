@@ -18,7 +18,8 @@
     "@anlat-hoca/config": "workspace:*",
     "@anlat-hoca/contracts": "workspace:*",
     "@anlat-hoca/prompts": "workspace:*",
-    "hono": "^4.13.7"
+    "hono": "^4.13.7",
+    "zod": "^4.5.4"
   },
   "devDependencies": {
     "@types/node": "^22.20.1",

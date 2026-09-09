@@ -44,6 +44,14 @@ export default function RootLayout() {
           options={{ headerShown: false, title: "Sunum Modu" }}
         />
         <Stack.Screen
+          name="lesson/[lessonId]/quiz"
+          options={{ title: "Beni Sına" }}
+        />
+        <Stack.Screen
+          name="quiz/[attemptId]/result"
+          options={{ title: "Quiz Sonucu" }}
+        />
+        <Stack.Screen
           name="quick-study/index"
           options={{ title: "Sınava Az Kaldı" }}
         />

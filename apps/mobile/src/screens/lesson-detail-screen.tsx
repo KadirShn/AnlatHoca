@@ -159,6 +159,35 @@ export function LessonDetailScreen() {
         />
       </View>
 
+      <View style={styles.quizCta}>
+        <View style={styles.presentationCtaCopy}>
+          <View style={styles.blockHeading}>
+            <Ionicons color={colors.primary} name="checkbox-outline" size={23} />
+            <AppText variant="heading3">Ders sonu quizi</AppText>
+          </View>
+          <AppText tone="muted">
+            Yalnızca bu derste çalıştığın konularla kendini sına.
+          </AppText>
+        </View>
+        <AppButton
+          accessibilityLabel="Bu ders için quizi aç"
+          label="Beni Sına"
+          leftIcon={
+            <Ionicons
+              color={colors.textOnPrimary}
+              name="help-circle-outline"
+              size={21}
+            />
+          }
+          onPress={() =>
+            router.push({
+              pathname: "/lesson/[lessonId]/quiz",
+              params: { lessonId: lesson.id },
+            })
+          }
+        />
+      </View>
+
       <View style={styles.overviewCard}>
         <AppText variant="heading3">Derse genel bakış</AppText>
         <AppText selectable tone="muted" style={styles.readableText}>
@@ -350,6 +379,15 @@ const styles = StyleSheet.create({
   },
   presentationCtaCopy: {
     gap: spacing.sm,
+  },
+  quizCta: {
+    backgroundColor: colors.surface,
+    borderColor: colors.primary,
+    borderCurve: "continuous",
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    gap: spacing.lg,
+    padding: spacing.xl,
   },
   readableText: {
     lineHeight: 25,

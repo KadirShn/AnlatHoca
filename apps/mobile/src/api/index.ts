@@ -6,3 +6,9 @@ export {
   uploadDocument,
 } from "./documents";
 export { generateLesson, getLessonDetail } from "./lessons";
+export {
+  getOrCreateQuiz,
+  getQuizAttemptDetail,
+  getQuizDetail,
+  submitQuiz,
+} from "./quizzes";

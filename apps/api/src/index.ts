@@ -1,6 +1,7 @@
 import {
   analyzeDocumentRequestSchema,
   guestSessionRequestSchema,
+  generateQuizRequestSchema,
   installationIdSchema,
   lessonDetailRequestSchema,
   lessonDurationSchema,
@@ -20,14 +21,18 @@ import { assertDatabaseAvailable } from "./data/database-health";
 import {
   resolveGeminiAnalysisModel,
   resolveGeminiLessonModel,
+  resolveGeminiQuizModel,
 } from "./config/ai";
 import { D1DocumentAnalysisRepository } from "./data/document-analysis-repository";
 import { D1DocumentLessonRepository } from "./data/document-lesson-repository";
 import { D1DocumentRepository } from "./data/document-repository";
 import { D1InstallationRepository } from "./data/installation-repository";
+import { D1LessonQuizRepository } from "./data/lesson-quiz-repository";
+import { D1QuizAttemptRepository } from "./data/quiz-attempt-repository";
 import { GeminiFilesProvider } from "./providers/files/gemini-files-provider";
 import { GeminiDocumentAnalysisProvider } from "./providers/ai/gemini-document-analysis-provider";
 import { GeminiLessonGenerationProvider } from "./providers/ai/gemini-lesson-generation-provider";
+import { GeminiQuizGenerationProvider } from "./providers/ai/gemini-quiz-generation-provider";
 import {
   analyzeDocument,
   DocumentAnalysisError,
@@ -43,6 +48,13 @@ import {
   LessonGenerationError,
 } from "./services/lesson-generation-service";
 import { bootstrapGuestSession } from "./services/guest-session-service";
+import {
+  generateQuiz,
+  getQuizAttemptDetail,
+  getQuizDetail,
+  QuizGenerationError,
+  submitQuiz,
+} from "./services/quiz-generation-service";
 
 type AppEnvironment = { Bindings: Env };
 
@@ -402,6 +414,147 @@ app.post(
   },
 );
 
+app.post(
+  "/lessons/:lessonId/quiz",
+  bodyLimit({
+    maxSize: 1_024,
+    onError: (context) =>
+      context.json(errorResponse("INVALID_REQUEST", "Geçersiz istek."), 400),
+  }),
+  async (context) => {
+    const body = await readJsonBody(context.req.raw);
+    const request = generateQuizRequestSchema.safeParse(body);
+
+    if (!request.success) {
+      return context.json(
+        errorResponse("INVALID_REQUEST", "Geçersiz istek."),
+        400,
+      );
+    }
+
+    const model = resolveGeminiQuizModel(context.env.GEMINI_QUIZ_MODEL);
+    const apiKey = context.env.GEMINI_API_KEY?.trim();
+    const provider = apiKey
+      ? new GeminiQuizGenerationProvider(apiKey, model)
+      : undefined;
+
+    try {
+      const result = await generateQuiz({
+        lessonId: context.req.param("lessonId"),
+        installationId: request.data.installationId,
+        model,
+        lessonRepository: new D1DocumentLessonRepository(context.env.DB),
+        quizRepository: new D1LessonQuizRepository(context.env.DB),
+        quizProvider: provider,
+      });
+
+      return result.created
+        ? context.json(result.response, 201)
+        : context.json(result.response, 200);
+    } catch (error) {
+      return handleQuizError(context, error, "quiz_generate");
+    }
+  },
+);
+
+app.post(
+  "/quizzes/:quizId/detail",
+  bodyLimit({
+    maxSize: 1_024,
+    onError: (context) =>
+      context.json(errorResponse("INVALID_REQUEST", "Geçersiz istek."), 400),
+  }),
+  async (context) => {
+    const body = await readJsonBody(context.req.raw);
+    const request = generateQuizRequestSchema.safeParse(body);
+
+    if (!request.success) {
+      return context.json(
+        errorResponse("INVALID_REQUEST", "Geçersiz istek."),
+        400,
+      );
+    }
+
+    try {
+      const response = await getQuizDetail({
+        quizId: context.req.param("quizId"),
+        installationId: request.data.installationId,
+        quizRepository: new D1LessonQuizRepository(context.env.DB),
+      });
+
+      return context.json(response);
+    } catch (error) {
+      return handleQuizError(context, error, "quiz_detail");
+    }
+  },
+);
+
+app.post(
+  "/quizzes/:quizId/submit",
+  bodyLimit({
+    maxSize: 8_192,
+    onError: (context) =>
+      context.json(
+        errorResponse(
+          "INVALID_QUIZ_SUBMISSION",
+          "Cevaplar gönderilemedi. Lütfen tüm soruları yanıtlayıp tekrar dene.",
+        ),
+        400,
+      ),
+  }),
+  async (context) => {
+    const body = await readJsonBody(context.req.raw);
+
+    try {
+      const response = await submitQuiz({
+        quizId: context.req.param("quizId"),
+        body,
+        lessonRepository: new D1DocumentLessonRepository(context.env.DB),
+        quizRepository: new D1LessonQuizRepository(context.env.DB),
+        attemptRepository: new D1QuizAttemptRepository(context.env.DB),
+      });
+
+      return context.json(response, 201);
+    } catch (error) {
+      return handleQuizError(context, error, "quiz_submit");
+    }
+  },
+);
+
+app.post(
+  "/quiz-attempts/:attemptId/detail",
+  bodyLimit({
+    maxSize: 1_024,
+    onError: (context) =>
+      context.json(errorResponse("INVALID_REQUEST", "Geçersiz istek."), 400),
+  }),
+  async (context) => {
+    const body = await readJsonBody(context.req.raw);
+    const request = generateQuizRequestSchema.safeParse(body);
+
+    if (!request.success) {
+      return context.json(
+        errorResponse("INVALID_REQUEST", "Geçersiz istek."),
+        400,
+      );
+    }
+
+    try {
+      const response = await getQuizAttemptDetail({
+        attemptId: context.req.param("attemptId"),
+        installationId: request.data.installationId,
+        lessonRepository: new D1DocumentLessonRepository(context.env.DB),
+        quizRepository: new D1LessonQuizRepository(context.env.DB),
+        attemptRepository: new D1QuizAttemptRepository(context.env.DB),
+      });
+
+      return context.json(response);
+    } catch (error) {
+      return handleQuizError(context, error, "quiz_attempt_detail");
+    }
+  },
+);
+
 app.all("/session", (context) =>
   context.json(
     errorResponse("METHOD_NOT_ALLOWED", "Bu yöntem desteklenmiyor."),
@@ -449,6 +602,11 @@ app.all("/lessons/:lessonId/detail", (context) =>
     { Allow: "POST" },
   ),
 );
+
+app.all("/lessons/:lessonId/quiz", methodNotAllowed);
+app.all("/quizzes/:quizId/detail", methodNotAllowed);
+app.all("/quizzes/:quizId/submit", methodNotAllowed);
+app.all("/quiz-attempts/:attemptId/detail", methodNotAllowed);
 
 app.notFound((context) =>
   context.json(errorResponse("NOT_FOUND", "Kaynak bulunamadı."), 404),
@@ -545,4 +703,32 @@ function handleLessonError(
 
   logOperationalError(operation, error);
   return context.json(internalErrorResponse(), 500);
+}
+
+function handleQuizError(
+  context: Context<AppEnvironment>,
+  error: unknown,
+  operation: string,
+) {
+  if (error instanceof QuizGenerationError) {
+    if (error.status >= 500 && error.code !== "AI_NOT_CONFIGURED") {
+      logOperationalError(operation, error);
+    }
+
+    return context.json(
+      errorResponse(error.code, error.publicMessage),
+      error.status,
+    );
+  }
+
+  logOperationalError(operation, error);
+  return context.json(internalErrorResponse(), 500);
+}
+
+function methodNotAllowed(context: Context<AppEnvironment>) {
+  return context.json(
+    errorResponse("METHOD_NOT_ALLOWED", "Bu yöntem desteklenmiyor."),
+    405,
+    { Allow: "POST" },
+  );
 }

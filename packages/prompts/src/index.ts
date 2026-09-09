@@ -7,3 +7,8 @@ export {
   LESSON_GENERATION_PROMPT_VERSION,
   type LessonGenerationPromptInput,
 } from "./lesson-generation";
+export {
+  buildQuizGenerationPrompt,
+  QUIZ_GENERATION_PROMPT_VERSION,
+  type QuizGenerationPromptInput,
+} from "./quiz-generation";

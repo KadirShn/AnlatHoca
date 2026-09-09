@@ -91,6 +91,14 @@ The mobile client communicates with the deployed Cloudflare Worker API. The API 
 - Never silently truncate lesson content to fit a presentation layout; split it deterministically and preserve its meaning and order.
 - Future TTS should attach narration to deterministic slide narration text instead of regenerating educational content.
 - Presentation accessibility and readable text scaling take priority over forcing every slide onto one physical screen.
+- Quiz questions must be grounded only in the persisted lesson.
+- Never generate quiz questions from lesson `skippedTopics`.
+- Public quiz responses must never expose correct answers, explanations, or equivalent answer-key data before submission.
+- Quiz grading and weak-section aggregation must remain deterministic and server-side; submission must never call AI.
+- Persist and reuse the current validated quiz artifact. One quiz may have many immutable attempts.
+- Reopening or retrying a quiz must not regenerate it or call Gemini.
+- Keep internal quiz answer-key entities separate from public quiz contracts.
+- Use student-friendly, non-judgmental language for sections that may benefit from review.
 
 ## Working expectations
 

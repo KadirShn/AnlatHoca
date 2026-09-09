@@ -14,3 +14,17 @@ export const MAX_PDF_UPLOAD_BODY_BYTES =
 export const DOCUMENT_UPLOAD_TIMEOUT_MS = 120_000;
 export const DOCUMENT_ANALYSIS_TIMEOUT_MS = 120_000;
 export const LESSON_GENERATION_TIMEOUT_MS = 120_000;
+export const QUIZ_GENERATION_TIMEOUT_MS = 120_000;
+
+/** Exact V1 quiz sizes for each supported lesson study budget. */
+export const QUIZ_QUESTION_COUNTS = {
+  10: 5,
+  30: 8,
+  60: 10,
+} as const;
+
+export function getQuizQuestionCount(
+  durationMinutes: keyof typeof QUIZ_QUESTION_COUNTS,
+): 5 | 8 | 10 {
+  return QUIZ_QUESTION_COUNTS[durationMinutes];
+}

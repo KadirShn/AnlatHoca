@@ -203,6 +203,135 @@ export type LessonDetailResponse = z.infer<
   typeof lessonDetailResponseSchema
 >;
 
+export const quizIdSchema = z.string().uuid();
+export const quizAttemptIdSchema = z.string().uuid();
+export const quizOptionIndexSchema = z.number().int().min(0).max(3);
+
+const quizOptionsSchema = z.tuple([
+  boundedText(1, 240),
+  boundedText(1, 240),
+  boundedText(1, 240),
+  boundedText(1, 240),
+]);
+
+export const publicQuizQuestionSchema = z
+  .object({
+    id: z.string().uuid(),
+    question: boundedText(10, 500),
+    options: quizOptionsSchema,
+  })
+  .strict();
+
+export type PublicQuizQuestion = z.infer<typeof publicQuizQuestionSchema>;
+
+export const publicQuizSchema = z
+  .object({
+    id: quizIdSchema,
+    lessonId: lessonIdSchema,
+    title: boundedText(1, 120),
+    questions: z.array(publicQuizQuestionSchema).min(1).max(10),
+  })
+  .strict();
+
+export type PublicQuiz = z.infer<typeof publicQuizSchema>;
+
+export const generateQuizRequestSchema = z
+  .object({ installationId: installationIdSchema })
+  .strict();
+
+export type GenerateQuizRequest = z.infer<typeof generateQuizRequestSchema>;
+
+export const generateQuizResponseSchema = z
+  .object({ quiz: publicQuizSchema })
+  .strict();
+
+export type GenerateQuizResponse = z.infer<typeof generateQuizResponseSchema>;
+
+export const quizDetailRequestSchema = generateQuizRequestSchema;
+export type QuizDetailRequest = GenerateQuizRequest;
+
+export const quizDetailResponseSchema = generateQuizResponseSchema;
+export type QuizDetailResponse = GenerateQuizResponse;
+
+export const quizSubmissionAnswerSchema = z
+  .object({
+    questionId: z.string().uuid(),
+    selectedOptionIndex: quizOptionIndexSchema,
+  })
+  .strict();
+
+export type QuizSubmissionAnswer = z.infer<
+  typeof quizSubmissionAnswerSchema
+>;
+
+export const quizSubmissionRequestSchema = z
+  .object({
+    installationId: installationIdSchema,
+    answers: z.array(quizSubmissionAnswerSchema).min(1).max(10),
+  })
+  .strict();
+
+export type QuizSubmissionRequest = z.infer<
+  typeof quizSubmissionRequestSchema
+>;
+
+export const gradedQuizQuestionSchema = z
+  .object({
+    questionId: z.string().uuid(),
+    question: boundedText(10, 500),
+    options: quizOptionsSchema,
+    selectedOptionIndex: quizOptionIndexSchema,
+    correctOptionIndex: quizOptionIndexSchema,
+    isCorrect: z.boolean(),
+    explanation: boundedText(20, 700),
+    sourceSectionIndex: z.number().int().nonnegative(),
+  })
+  .strict();
+
+export type GradedQuizQuestion = z.infer<
+  typeof gradedQuizQuestionSchema
+>;
+
+export const weakQuizSectionSchema = z
+  .object({
+    sectionIndex: z.number().int().nonnegative(),
+    title: boundedText(1, 120),
+    wrongAnswers: z.number().int().positive().max(10),
+  })
+  .strict();
+
+export type WeakQuizSection = z.infer<typeof weakQuizSectionSchema>;
+
+export const quizAttemptResultSchema = z
+  .object({
+    id: quizAttemptIdSchema,
+    quizId: quizIdSchema,
+    lessonId: lessonIdSchema,
+    correctCount: z.number().int().nonnegative().max(10),
+    totalQuestions: z.number().int().positive().max(10),
+    scorePercent: z.number().int().min(0).max(100),
+    questions: z.array(gradedQuizQuestionSchema).min(1).max(10),
+    weakSections: z.array(weakQuizSectionSchema).max(12),
+    createdAt: z.string().datetime({ offset: true }),
+  })
+  .strict();
+
+export type QuizAttemptResult = z.infer<typeof quizAttemptResultSchema>;
+
+export const quizSubmissionResponseSchema = z
+  .object({ attempt: quizAttemptResultSchema })
+  .strict();
+
+export type QuizSubmissionResponse = z.infer<
+  typeof quizSubmissionResponseSchema
+>;
+
+export const quizAttemptDetailRequestSchema = generateQuizRequestSchema;
+export type QuizAttemptDetailRequest = GenerateQuizRequest;
+
+export const quizAttemptDetailResponseSchema = quizSubmissionResponseSchema;
+export type QuizAttemptDetailResponse = QuizSubmissionResponse;
+
 export const apiErrorCodeSchema = z.enum([
   "INVALID_REQUEST",
   "FILE_TOO_LARGE",
@@ -220,6 +349,11 @@ export const apiErrorCodeSchema = z.enum([
   "LESSON_NOT_FOUND",
   "LESSON_GENERATION_FAILED",
   "LESSON_IN_PROGRESS",
+  "QUIZ_NOT_FOUND",
+  "QUIZ_ATTEMPT_NOT_FOUND",
+  "QUIZ_GENERATION_FAILED",
+  "QUIZ_IN_PROGRESS",
+  "INVALID_QUIZ_SUBMISSION",
   "METHOD_NOT_ALLOWED",
   "NOT_FOUND",
   "INTERNAL_ERROR",

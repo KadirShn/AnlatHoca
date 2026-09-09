@@ -9,7 +9,8 @@
   },
   "vars": {
     "GEMINI_ANALYSIS_MODEL": "gemini-3.6-flash",
-    "GEMINI_LESSON_MODEL": "gemini-3.6-flash"
+    "GEMINI_LESSON_MODEL": "gemini-3.6-flash",
+    "GEMINI_QUIZ_MODEL": "gemini-3.6-flash"
   },
   "d1_databases": [
     {

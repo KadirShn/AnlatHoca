@@ -98,6 +98,30 @@ Presentation mode is a mobile rendering concern. It reuses the existing installa
 
 The current slide index is screen-local. Swipe navigation uses native horizontal paged `FlatList`; explicit controls and text/progress indicators remain available. No presentation artifact, layout state, or completion state is stored in D1.
 
+## Current quiz flow
+
+```text
+/lesson/:lessonId
+  -> explicit Beni Sına action
+  -> POST /lessons/:lessonId/quiz
+  -> installation-scoped persisted lesson
+  -> current quiz cache lookup + lightweight D1 generation claim
+  -> versioned lesson-only prompt + Gemini structured JSON
+  -> Zod + question-count/section/duplicate semantic validation
+  -> server-generated question IDs + internal answer-key persistence
+  -> sanitized public quiz without answers or explanations
+  -> POST /quizzes/:quizId/submit
+  -> deterministic grading + weak-section aggregation
+  -> immutable quiz_attempts row
+  -> /quiz/:attemptId/result
+```
+
+`GEMINI_QUIZ_MODEL` is independent from the analysis and lesson settings and defaults to `gemini-3.6-flash`. Quiz prompt/schema versioning is `v1`. The exact question counts are 5, 8, and 10 for 10, 30, and 60 minute lessons.
+
+The quiz source is the validated persisted lesson; no temporary PDF is needed and `skippedTopics` is intentionally excluded. The cache identity is `(lesson_id, schema_version, prompt_version, model)`. One internal quiz can have many immutable attempts. Opening, retrying, submitting, or reopening a result never calls Gemini.
+
+`lesson_quizzes.questions_json` is an internal entity containing correct option indexes, explanations, and source section indexes. Public generation/detail responses deliberately map it to question IDs, text, and four options only. Submission accepts selected option indexes only; the Worker calculates the rounded integer score and sorts review sections by wrong-answer count, then original lesson order.
+
 ## Current bootstrap flow
 
 ```text
@@ -115,7 +139,7 @@ App starts
 
 ## Stored data and privacy boundary
 
-D1 stores the app-generated installation UUID, document display metadata, internal temporary provider references, validated analysis, and validated lesson artifacts. Lesson persistence contains public educational fields plus duration, schema version, prompt version, and model name. It does not store PDF bytes, prompt bodies, local URIs, raw Gemini responses, chain-of-thought, IP addresses, request headers, hardware or advertising identifiers, phone details, names, email addresses, profiles, or credentials.
+D1 stores the app-generated installation UUID, document display metadata, internal temporary provider references, validated analysis and lesson artifacts, validated internal quizzes, and minimal immutable quiz attempts. Quiz attempts contain the installation scope, selected answers, deterministic score totals, and weak-section aggregation; they do not duplicate lesson or quiz bodies. Persistence does not contain PDF bytes, prompt bodies, local URIs, raw Gemini responses, chain-of-thought, IP addresses, request headers, hardware or advertising identifiers, phone details, names, email addresses, profiles, or credentials.
 
 Gemini Files API temporarily stores the original PDF and currently deletes uploaded files automatically according to its service behavior. The returned expiration timestamp is persisted only when supplied by Gemini; the application does not invent one. If D1 insertion fails after upload, the service attempts to delete the temporary provider file without replacing the original error.
 
@@ -129,12 +153,12 @@ Schema changes are versioned in `apps/api/migrations` and applied with Wrangler'
 
 ## Current capabilities
 
-- The mobile app contains local PDF selection, real multipart upload UX, explicit analysis UX, duration selection, scrollable lesson reading, and an interactive presentation mode.
+- The mobile app contains local PDF selection, real multipart upload UX, explicit analysis UX, duration selection, scrollable lesson reading, interactive presentation mode, one-question-at-a-time quiz solving, and persisted result review.
 - The mobile API URL has one source of truth and missing configuration degrades to a visible, retryable state without blocking navigation.
-- The API exposes explicit analysis/lesson generation and D1-only detail endpoints.
-- D1 persists guest installations, document metadata/internal provider references, validated analyses, and versioned lesson cache entries; it never stores raw PDFs.
-- Gemini document analysis and lesson generation are deployed through the production Worker. Presentation mode is derived locally from cached lessons. Quizzes, Ask Teacher, voice/TTS, authentication, R2 storage, and store distribution are not configured.
+- The API exposes explicit analysis, lesson, and quiz generation plus D1-only detail, grading, and attempt-reopen endpoints.
+- D1 persists guest installations, document metadata/internal provider references, validated analyses, versioned lesson/quiz cache entries, and immutable quiz attempts; it never stores raw PDFs.
+- Gemini document analysis, lesson generation, and lesson-grounded quiz generation run behind separate provider abstractions. Presentation mode is derived locally from cached lessons. Ask Teacher, voice/TTS, authentication, R2 storage, and store distribution are not configured.
 
 ## Later integrations
 
-Tables for quizzes, users, subscriptions, and exam content will be introduced only with their actual flows and versioned migrations. Original uploaded PDFs should not be permanently stored unless a future requirement explicitly changes that policy.
+Tables for users, subscriptions, and exam content will be introduced only with their actual flows and versioned migrations. Original uploaded PDFs should not be permanently stored unless a future requirement explicitly changes that policy.

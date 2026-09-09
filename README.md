@@ -2,7 +2,7 @@
 
 Anlat Hoca is an AI-powered mobile study application being built with Expo and Cloudflare Workers.
 
-The repository supports PDF selection and transfer, temporary Gemini Files preparation, real AI document analysis, topic extraction, time-aware 10/30/60 minute lesson generation, runtime-validated structured results, persistent D1 caching, and an interactive mobile presentation mode. The Worker and D1 backend are deployed to Cloudflare production. Quizzes, Ask Teacher, voice/TTS, exam packs, authentication, permanent raw-file storage, and store distribution are not implemented.
+The repository supports PDF selection and transfer, temporary Gemini Files preparation, real AI document analysis, topic extraction, time-aware 10/30/60 minute lesson generation, persistent D1 caching, interactive presentation mode, and lesson-grounded multiple-choice quizzes with server-side grading and weak-section feedback. The Worker and D1 backend are deployed to Cloudflare production. Ask Teacher, voice/TTS, exam packs, authentication, permanent raw-file storage, and store distribution are not implemented.
 
 ## Technology stack
 
@@ -18,8 +18,8 @@ The repository supports PDF selection and transfer, temporary Gemini Files prepa
 
 ```text
 apps/
-  mobile/      Expo mobile application, document flow, lesson screens, API client, and bootstrap state
-  api/         Worker API, Gemini providers, D1 migrations, services, and repositories
+  mobile/      Expo mobile application, document/lesson/quiz screens, API client, and bootstrap state
+  api/         Worker API, Gemini providers, D1 migrations, grading services, and repositories
 packages/
   contracts/   Shared runtime schemas and TypeScript API contracts
   prompts/     AI prompt ownership and conventions
@@ -86,3 +86,9 @@ The cache identity includes document, duration, schema version, prompt version, 
 From the normal lesson screen, the learner can open `/lesson/[lessonId]/presentation`. The route retrieves the same persisted lesson through the existing D1-backed detail endpoint and deterministically projects it into focused intro, objectives, section, explanation, recap, and optional skipped-topic slides. Long explanations are split at paragraph, sentence, clause, and finally word boundaries without summarizing or dropping lesson text.
 
 Presentation navigation supports native horizontal paging plus explicit previous/next controls, a textual slide index, and a progress bar. Presentation mode creates no AI request, backend artifact, or D1 row.
+
+## Current quiz pipeline
+
+The learner explicitly opens **Beni Sına** from a persisted lesson. The Worker supplies only that validated lesson to the independently configured `GEMINI_QUIZ_MODEL`, validates the structured Turkish multiple-choice output, assigns stable question IDs, and caches one current quiz per lesson/schema/prompt/model identity.
+
+Ten, 30, and 60 minute lessons produce exactly 5, 8, and 10 questions. The initial mobile response contains questions and four options only; correct option indexes and explanations remain in the internal D1 quiz entity until submission. Submission makes no AI call: the Worker grades deterministically, persists a new immutable attempt, and aggregates incorrect answers by original lesson section.
