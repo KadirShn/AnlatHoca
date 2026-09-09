@@ -47,6 +47,14 @@ Apply all pending migrations to Wrangler's local D1 database:
 corepack pnpm db:migrate:local
 ```
 
+Historical exam dataset integrity is covered by the API service tests. They verify strict response parsing, unique one-topic mappings, deterministic totals/averages/year counts, partial coverage labeling, and distinct unknown/unavailable errors:
+
+```powershell
+corepack pnpm --filter @anlat-hoca/api test
+```
+
+The KPSS insight endpoints are static reads. They require no local D1 migration, Gemini key, installation identifier, or Cloudflare login.
+
 List pending local migrations:
 
 ```powershell

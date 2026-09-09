@@ -1,6 +1,6 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import type { ExamSubject } from "@anlat-hoca/contracts";
-import { StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 
 import { colors, radius, spacing } from "@/theme";
 
@@ -8,18 +8,16 @@ import { AppText } from "./app-text";
 
 interface ExamSubjectRowProps {
   subject: ExamSubject;
+  onPress?: () => void;
 }
 
-export function ExamSubjectRow({ subject }: ExamSubjectRowProps) {
+export function ExamSubjectRow({ subject, onPress }: ExamSubjectRowProps) {
   const isAvailable = subject.status === "available";
-  const statusLabel = isAvailable ? "Kullanıma hazır" : "Konu paketi hazırlanıyor";
-
-  return (
-    <View
-      accessible
-      accessibilityLabel={`${subject.title}. ${statusLabel}.`}
-      style={styles.row}
-    >
+  const statusLabel = isAvailable
+    ? "Doğrulanmış geçmiş veriyi incele"
+    : "Konu paketi hazırlanıyor";
+  const content = (
+    <>
       <View style={styles.iconContainer}>
         <Ionicons
           color={isAvailable ? colors.success : colors.textMuted}
@@ -37,6 +35,29 @@ export function ExamSubjectRow({ subject }: ExamSubjectRowProps) {
           {statusLabel}
         </AppText>
       </View>
+      {isAvailable ? (
+        <Ionicons color={colors.textMuted} name="chevron-forward" size={20} />
+      ) : null}
+    </>
+  );
+
+  return isAvailable && onPress ? (
+    <Pressable
+      accessibilityHint="Doğrulanmış geçmiş sınav verilerini açar"
+      accessibilityLabel={`${subject.title}. ${statusLabel}.`}
+      accessibilityRole="button"
+      onPress={onPress}
+      style={({ pressed }) => [styles.row, pressed && styles.pressed]}
+    >
+      {content}
+    </Pressable>
+  ) : (
+    <View
+      accessible
+      accessibilityLabel={`${subject.title}. ${statusLabel}.`}
+      style={styles.row}
+    >
+      {content}
     </View>
   );
 }
@@ -68,5 +89,8 @@ const styles = StyleSheet.create({
   },
   availableText: {
     color: colors.success,
+  },
+  pressed: {
+    backgroundColor: colors.surfaceMuted,
   },
 });

@@ -210,6 +210,13 @@ Schema changes are versioned in `apps/api/migrations` and applied with Wrangler'
 - The API exposes explicit analysis, lesson, quiz, and teacher-answer generation plus D1-only detail, grading, history, and attempt-reopen endpoints.
 - D1 persists guest installations, document metadata/internal provider references, validated analyses, versioned lesson/quiz cache entries, immutable quiz attempts, and ordered teacher conversations; it never stores raw PDFs.
 - Gemini document analysis, lesson generation, lesson-grounded quiz generation, and lesson-grounded teacher answers run behind separate provider abstractions. Presentation mode is derived locally from cached lessons. Voice/TTS, authentication, R2 storage, and store distribution are not configured.
+- KPSS Lisans Tarih/Coğrafya historical insights are strict, source-controlled configuration with a separate historicalDataVersion. The Worker computes totals from one-topic observation mappings and serves them without D1 or Gemini. The mobile client runtime-validates the response and labels its official-public-sample coverage as partial.
+
+## Historical exam insight boundary
+
+Source-controlled ÖSYM metadata, topic taxonomy, and item-to-primary-topic mappings pass through strict Zod dataset validation. Deterministic totals, averages, years appeared, and yearly breakdowns are then exposed by GET /exam-packs/:packId/subjects/:subjectId/insights and runtime-validated again by mobile.
+
+No copyrighted question text, option, answer, screenshot, or PDF is stored. Missing verified coverage returns an explicit unavailable error rather than an empty or fabricated statistical result. This flow adds no table and leaves D1 migrations at 0001–0006.
 
 ## Later integrations
 

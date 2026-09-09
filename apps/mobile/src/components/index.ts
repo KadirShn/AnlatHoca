@@ -6,6 +6,7 @@ export { DocumentPickerCard } from "./document-picker-card";
 export { EmptyState } from "./empty-state";
 export { ExamPackCard } from "./exam-pack-card";
 export { ExamSubjectRow } from "./exam-subject-row";
+export { HistoricalInsightCard } from "./historical-insight-card";
 export { FeatureCard } from "./feature-card";
 export { InlineMessage } from "./inline-message";
 export { LibraryDocumentCard } from "./library-document-card";

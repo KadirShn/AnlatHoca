@@ -601,6 +601,257 @@ export const examPackRegistrySchema = z
     });
   });
 
+export const historicalSourceCoverageSchema = z.enum([
+  "full",
+  "partial",
+  "aggregate",
+  "unknown",
+]);
+
+export const historicalEvidenceStatusSchema = z.enum([
+  "verified",
+  "partial",
+  "insufficient",
+]);
+
+export const historicalExamSourceSchema = z
+  .object({
+    id: examPackIdSchema,
+    administrationYear: z.number().int().min(2000).max(2100),
+    title: boundedText(1, 240),
+    publisher: boundedText(1, 180),
+    url: z.url(),
+    accessedAt: z.string().date(),
+    coverage: historicalSourceCoverageSchema,
+  })
+  .strict();
+
+export type HistoricalExamSource = z.infer<typeof historicalExamSourceSchema>;
+
+export const historicalTopicTaxonomySchema = z
+  .object({
+    id: examPackIdSchema,
+    title: boundedText(1, 120),
+    aliases: z.array(boundedText(1, 120)).max(20),
+  })
+  .strict();
+
+export const historicalExamObservationSchema = z
+  .object({
+    administrationYear: z.number().int().min(2000).max(2100),
+    subjectId: examPackIdSchema,
+    questionNumber: z.number().int().positive().max(120),
+    topicId: examPackIdSchema,
+    sourceId: examPackIdSchema,
+  })
+  .strict();
+
+export const historicalSubjectDatasetSchema = z
+  .object({
+    examPackId: examPackIdSchema,
+    subjectId: examPackIdSchema,
+    subjectTitle: boundedText(1, 120),
+    historicalDataVersion: z.string().regex(/^v[1-9]\d*$/),
+    coverage: z
+      .object({
+        administrationYears: z
+          .array(z.number().int().min(2000).max(2100))
+          .min(1)
+          .max(10),
+        type: historicalSourceCoverageSchema,
+        note: boundedText(1, 600),
+      })
+      .strict(),
+    topics: z.array(historicalTopicTaxonomySchema).min(1).max(40),
+    sources: z.array(historicalExamSourceSchema).min(1).max(20),
+    observations: z.array(historicalExamObservationSchema).min(1).max(500),
+    methodology: boundedText(1, 1_500),
+    disclaimer: boundedText(1, 600),
+  })
+  .strict()
+  .superRefine((dataset, context) => {
+    const years = new Set(dataset.coverage.administrationYears);
+    const topicIds = new Set(dataset.topics.map((topic) => topic.id));
+    const sourceIds = new Set(dataset.sources.map((source) => source.id));
+
+    if (years.size !== dataset.coverage.administrationYears.length) {
+      context.addIssue({
+        code: "custom",
+        message: "Administration years must be unique.",
+        path: ["coverage", "administrationYears"],
+      });
+    }
+    if (topicIds.size !== dataset.topics.length) {
+      context.addIssue({
+        code: "custom",
+        message: "Historical topic IDs must be unique.",
+        path: ["topics"],
+      });
+    }
+    if (sourceIds.size !== dataset.sources.length) {
+      context.addIssue({
+        code: "custom",
+        message: "Historical source IDs must be unique.",
+        path: ["sources"],
+      });
+    }
+    const sourceYears = new Set(
+      dataset.sources.map((source) => source.administrationYear),
+    );
+    for (const year of years) {
+      if (!sourceYears.has(year)) {
+        context.addIssue({
+          code: "custom",
+          message: "Every covered year must have a source.",
+          path: ["sources"],
+        });
+      }
+    }
+    dataset.sources.forEach((source, index) => {
+      if (!years.has(source.administrationYear)) {
+        context.addIssue({
+          code: "custom",
+          message: "Source year is outside dataset coverage.",
+          path: ["sources", index, "administrationYear"],
+        });
+      }
+    });
+
+    const observationKeys = new Set<string>();
+    dataset.observations.forEach((observation, index) => {
+      const key = `${observation.administrationYear}:${observation.subjectId}:${observation.questionNumber}`;
+      if (observationKeys.has(key)) {
+        context.addIssue({
+          code: "custom",
+          message: "An exam item can map to only one primary topic.",
+          path: ["observations", index],
+        });
+      }
+      observationKeys.add(key);
+
+      if (!years.has(observation.administrationYear)) {
+        context.addIssue({
+          code: "custom",
+          message: "Observation year is outside dataset coverage.",
+          path: ["observations", index, "administrationYear"],
+        });
+      }
+      if (observation.subjectId !== dataset.subjectId) {
+        context.addIssue({
+          code: "custom",
+          message: "Observation subject does not match the dataset.",
+          path: ["observations", index, "subjectId"],
+        });
+      }
+      if (!topicIds.has(observation.topicId)) {
+        context.addIssue({
+          code: "custom",
+          message: "Observation references an unknown topic.",
+          path: ["observations", index, "topicId"],
+        });
+      }
+      if (!sourceIds.has(observation.sourceId)) {
+        context.addIssue({
+          code: "custom",
+          message: "Observation references an unknown source.",
+          path: ["observations", index, "sourceId"],
+        });
+      }
+
+      const source = dataset.sources.find(
+        (candidate) => candidate.id === observation.sourceId,
+      );
+      if (
+        source &&
+        source.administrationYear !== observation.administrationYear
+      ) {
+        context.addIssue({
+          code: "custom",
+          message: "Observation and source years must match.",
+          path: ["observations", index, "sourceId"],
+        });
+      }
+    });
+  });
+
+export type HistoricalSubjectDataset = z.infer<
+  typeof historicalSubjectDatasetSchema
+>;
+
+const historicalTopicMetricSchema = z
+  .object({
+    topicId: examPackIdSchema,
+    title: boundedText(1, 120),
+    totalObserved: z.number().int().nonnegative(),
+    averageObservedPerAdministration: z.number().nonnegative(),
+    yearsAppeared: z.number().int().nonnegative(),
+    evidenceStatus: z.enum(["verified", "partial"]),
+    yearlyCounts: z.array(
+      z
+        .object({
+          year: z.number().int().min(2000).max(2100),
+          count: z.number().int().nonnegative(),
+        })
+        .strict(),
+    ),
+  })
+  .strict()
+  .superRefine((topic, context) => {
+    const years = topic.yearlyCounts.map((item) => item.year);
+    if (new Set(years).size !== years.length) {
+      context.addIssue({
+        code: "custom",
+        message: "Topic yearly counts cannot contain duplicate years.",
+        path: ["yearlyCounts"],
+      });
+    }
+  });
+
+const historicalTopicInsufficientSchema = z
+  .object({
+    topicId: examPackIdSchema,
+    title: boundedText(1, 120),
+    evidenceStatus: z.literal("insufficient"),
+    reason: boundedText(1, 400),
+  })
+  .strict();
+
+export const historicalTopicInsightSchema = z.discriminatedUnion(
+  "evidenceStatus",
+  [historicalTopicMetricSchema, historicalTopicInsufficientSchema],
+);
+
+export type HistoricalTopicInsight = z.infer<
+  typeof historicalTopicInsightSchema
+>;
+
+export const examSubjectInsightsResponseSchema = z
+  .object({
+    examPackId: examPackIdSchema,
+    subjectId: examPackIdSchema,
+    subjectTitle: boundedText(1, 120),
+    historicalDataVersion: z.string().regex(/^v[1-9]\d*$/),
+    coverage: z
+      .object({
+        administrationYears: z
+          .array(z.number().int().min(2000).max(2100))
+          .min(1),
+        administrationCount: z.number().int().positive(),
+        type: historicalSourceCoverageSchema,
+        note: boundedText(1, 600),
+      })
+      .strict(),
+    topics: z.array(historicalTopicInsightSchema).min(1),
+    sources: z.array(historicalExamSourceSchema).min(1),
+    methodology: boundedText(1, 1_500),
+    disclaimer: boundedText(1, 600),
+  })
+  .strict();
+
+export type ExamSubjectInsightsResponse = z.infer<
+  typeof examSubjectInsightsResponseSchema
+>;
+
 export const apiErrorCodeSchema = z.enum([
   "INVALID_REQUEST",
   "FILE_TOO_LARGE",
@@ -628,6 +879,8 @@ export const apiErrorCodeSchema = z.enum([
   "TEACHER_RESPONSE_FAILED",
   "USAGE_LIMIT_REACHED",
   "EXAM_PACK_NOT_FOUND",
+  "EXAM_SUBJECT_NOT_FOUND",
+  "EXAM_INSIGHTS_NOT_AVAILABLE",
   "METHOD_NOT_ALLOWED",
   "NOT_FOUND",
   "INTERNAL_ERROR",

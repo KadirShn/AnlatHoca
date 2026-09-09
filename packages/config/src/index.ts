@@ -27,6 +27,16 @@ export {
   findExamPack,
   parseExamPackRegistry,
 } from "./exam-packs";
+export {
+  HISTORICAL_SUBJECT_DATASETS,
+  buildExamSubjectInsights,
+  findExamSubjectHistoricalInsights,
+  parseHistoricalSubjectDatasets,
+} from "./exam-packs/historical-insights";
+export {
+  KPSS_HISTORICAL_ADMINISTRATION_YEARS,
+  KPSS_HISTORICAL_DATA_VERSION,
+} from "./exam-packs/kpss-lisans-historical-v1";
 
 /** Lesson-grounded teacher conversation limits. */
 export const MAX_TEACHER_QUESTION_CHARS = 1_200;

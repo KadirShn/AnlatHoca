@@ -56,8 +56,11 @@ import {
 } from "./services/lesson-generation-service";
 import { bootstrapGuestSession } from "./services/guest-session-service";
 import {
+  ExamInsightsNotAvailableError,
   ExamPackNotFoundError,
+  ExamSubjectNotFoundError,
   getExamPackDetail,
+  getExamSubjectInsights,
   listExamPacks,
 } from "./services/exam-pack-service";
 import { getLibrary } from "./services/library-service";
@@ -140,6 +143,41 @@ app.get("/exam-packs/:packId", (context) => {
         errorResponse(
           "EXAM_PACK_NOT_FOUND",
           "Bu sınav paketi bulunamadı.",
+        ),
+        404,
+      );
+    }
+
+    throw error;
+  }
+});
+
+app.get("/exam-packs/:packId/subjects/:subjectId/insights", (context) => {
+  try {
+    return context.json(
+      getExamSubjectInsights(
+        context.req.param("packId"),
+        context.req.param("subjectId"),
+      ),
+    );
+  } catch (error) {
+    if (error instanceof ExamPackNotFoundError) {
+      return context.json(
+        errorResponse("EXAM_PACK_NOT_FOUND", "Bu sınav paketi bulunamadı."),
+        404,
+      );
+    }
+    if (error instanceof ExamSubjectNotFoundError) {
+      return context.json(
+        errorResponse("EXAM_SUBJECT_NOT_FOUND", "Bu çalışma alanı bulunamadı."),
+        404,
+      );
+    }
+    if (error instanceof ExamInsightsNotAvailableError) {
+      return context.json(
+        errorResponse(
+          "EXAM_INSIGHTS_NOT_AVAILABLE",
+          "Bu çalışma alanı için doğrulanmış geçmiş sınav verisi henüz hazır değil.",
         ),
         404,
       );
@@ -745,6 +783,10 @@ app.all("/session", (context) =>
 app.all("/library", methodNotAllowed);
 app.all("/exam-packs", methodNotAllowedGet);
 app.all("/exam-packs/:packId", methodNotAllowedGet);
+app.all(
+  "/exam-packs/:packId/subjects/:subjectId/insights",
+  methodNotAllowedGet,
+);
 
 app.all("/documents/upload", (context) =>
   context.json(

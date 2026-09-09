@@ -61,12 +61,12 @@ export const EXAM_PACKS = parseExamPackRegistry([
       {
         id: "tarih",
         title: "Tarih",
-        status: "coming_soon",
+        status: "available",
       },
       {
         id: "cografya",
         title: "Coğrafya",
-        status: "coming_soon",
+        status: "available",
       },
       {
         id: "vatandaslik",

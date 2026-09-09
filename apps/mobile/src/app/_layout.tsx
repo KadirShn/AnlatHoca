@@ -67,6 +67,10 @@ export default function RootLayout() {
           name="exams/[examId]"
           options={{ title: "Sınav Paketi" }}
         />
+        <Stack.Screen
+          name="exams/[examId]/[subjectId]/index"
+          options={{ title: "Geçmiş Sınav Verileri" }}
+        />
       </Stack>
       <StatusBar style="dark" />
     </AppBootstrapProvider>

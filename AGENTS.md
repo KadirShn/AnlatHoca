@@ -118,6 +118,15 @@ The mobile client communicates with the deployed Cloudflare Worker API. The API 
 - Prepared exam catalog and content definitions must be explicitly versioned.
 - Static catalog reads must never invoke AI generation.
 - Do not add a D1 table for static product configuration without a real persistence requirement.
+- Historical exam datasets must identify exact administrations, primary sources, access dates, and source coverage as full, partial, aggregate, or unknown.
+- Never extrapolate partial public-booklet observations into full-exam counts, trends, probabilities, or guarantees.
+- Keep historical dataset versions independent from exam-pack content versions.
+- Store only rights-safe historical metadata and audit mappings; never commit exam PDFs, screenshots, question text, options, or answer keys.
+- Classify each observed exam item under exactly one primary canonical topic so aggregate totals cannot double-count it.
+- Derive historical totals, averages, year counts, and yearly breakdowns deterministically from validated source mappings.
+- Distinguish a verified zero within the declared evidence scope from insufficient evidence outside that scope.
+- Subjects without a verified dataset must remain unavailable and must never return fabricated empty statistics.
+- Historical insight reads must remain static and must not invoke Gemini or access D1.
 
 ## Working expectations
 

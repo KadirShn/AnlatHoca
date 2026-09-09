@@ -3,7 +3,7 @@ import {
   examPackIdSchema,
   type ExamPackDetail,
 } from "@anlat-hoca/contracts";
-import { useLocalSearchParams } from "expo-router";
+import { type Href, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 
@@ -20,6 +20,7 @@ import { colors, radius, spacing } from "@/theme";
 const LOAD_ERROR = "Sınav paketi şu anda yüklenemedi.";
 
 export function ExamPackDetailScreen() {
+  const router = useRouter();
   const params = useLocalSearchParams<{ examId?: string | string[] }>();
   const packId = useMemo(() => {
     const candidate = Array.isArray(params.examId)
@@ -98,13 +99,24 @@ export function ExamPackDetailScreen() {
             <AppText variant="heading2">Çalışma alanları</AppText>
             <View style={styles.subjects}>
               {pack.subjects.map((subject) => (
-                <ExamSubjectRow key={subject.id} subject={subject} />
+                <ExamSubjectRow
+                  key={subject.id}
+                  onPress={
+                    subject.status === "available"
+                      ? () =>
+                          router.push(
+                            `/exams/${pack.id}/${subject.id}` as Href,
+                          )
+                      : undefined
+                  }
+                  subject={subject}
+                />
               ))}
             </View>
           </View>
 
           <InlineMessage
-            message="Konu paketleri hazırlanıyor. Doğrulanmış içerikler eklendikçe çalışma alanları açılacak."
+            message="Yalnızca doğrulanmış kaynak verisi bulunan çalışma alanları açılır. Diğer alanlar hazırlanıyor."
             tone="info"
           />
         </>

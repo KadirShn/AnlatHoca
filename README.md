@@ -104,4 +104,6 @@ Home requests at most three recent lessons. The Library tab requests at most 20 
 
 ## Current prepared exam pack foundation
 
-`GET /exam-packs` and `GET /exam-packs/:packId` expose a small, versioned static catalog for TYT and KPSS Lisans. The mobile **Sınava Hazırlan** flow reads these runtime-validated contracts and opens direct pack detail routes. Subjects are informational and clearly marked as being prepared; no lesson content, historical question statistics, copied exam questions, AI generation, or D1 persistence is included in this foundation.
+GET /exam-packs and GET /exam-packs/:packId expose a small, versioned static catalog for TYT and KPSS Lisans. KPSS Lisans Tarih and Coğrafya additionally expose source-controlled historical insight data through GET /exam-packs/:packId/subjects/:subjectId/insights.
+
+The insight dataset covers the official public 10% samples from the completed 2021–2025 administrations. It is explicitly partial, contains no question text or answer material, and never represents its observed counts as full-exam distributions or future probabilities. The mobile **Sınava Hazırlan** flow enables only these verified subjects and provides methodology plus direct ÖSYM source links. Static exam reads use neither Gemini nor D1. See [the research note](docs/research/kpss-lisans-history-geography-v1.md).
