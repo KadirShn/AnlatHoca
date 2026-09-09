@@ -118,6 +118,8 @@ The current slide index is screen-local. Swipe navigation uses native horizontal
 
 `GEMINI_QUIZ_MODEL` is independent from the analysis and lesson settings and defaults to `gemini-3.6-flash`. Quiz prompt/schema versioning is `v1`. The exact question counts are 5, 8, and 10 for 10, 30, and 60 minute lessons.
 
+Quiz generation retries only clearly transient Gemini failures (`429`, `500`, `502`, `503`, `504`, or a network transport failure). It makes at most three total upstream attempts with short exponential backoff inside the existing provider timeout. Authentication, configuration, schema, and content-validation failures are not retried.
+
 The quiz source is the validated persisted lesson; no temporary PDF is needed and `skippedTopics` is intentionally excluded. The cache identity is `(lesson_id, schema_version, prompt_version, model)`. One internal quiz can have many immutable attempts. Opening, retrying, submitting, or reopening a result never calls Gemini.
 
 `lesson_quizzes.questions_json` is an internal entity containing correct option indexes, explanations, and source section indexes. Public generation/detail responses deliberately map it to question IDs, text, and four options only. Submission accepts selected option indexes only; the Worker calculates the rounded integer score and sorts review sections by wrong-answer count, then original lesson order.

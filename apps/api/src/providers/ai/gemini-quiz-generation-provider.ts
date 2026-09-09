@@ -9,6 +9,7 @@ import {
   GEMINI_ORIGIN,
   type GeminiFetchImplementation,
 } from "./gemini-file-readiness";
+import { fetchGeminiWithTransientRetry } from "./gemini-transient-request";
 
 const GENERATION_TIMEOUT_MS = 100_000;
 
@@ -31,7 +32,8 @@ export class GeminiQuizGenerationProvider
     const timeout = setTimeout(() => controller.abort(), GENERATION_TIMEOUT_MS);
 
     try {
-      const response = await this.fetchImplementation(
+      const { response, attempts } = await fetchGeminiWithTransientRetry(
+        this.fetchImplementation,
         `${GEMINI_ORIGIN}/v1beta/models/${encodeURIComponent(this.model)}:generateContent`,
         {
           method: "POST",
@@ -64,12 +66,22 @@ export class GeminiQuizGenerationProvider
           JSON.stringify({
             event: "gemini_quiz_generation_request_failed",
             status: response.status,
+            attempts,
           }),
         );
         throw new QuizGenerationProviderError(
           response.status === 401 || response.status === 403
             ? "authentication"
             : "upstream",
+        );
+      }
+
+      if (attempts > 1) {
+        console.log(
+          JSON.stringify({
+            event: "gemini_quiz_generation_request_recovered",
+            attempts,
+          }),
         );
       }
 
