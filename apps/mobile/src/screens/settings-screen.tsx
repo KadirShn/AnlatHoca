@@ -1,7 +1,8 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import Constants from "expo-constants";
+import { type Href, useRouter } from "expo-router";
 import type { ComponentProps } from "react";
-import { StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 
 import {
   AppText,
@@ -16,26 +17,47 @@ type SettingsIcon = ComponentProps<typeof Ionicons>["name"];
 interface SettingsRowProps {
   icon: SettingsIcon;
   label: string;
-  value: string;
+  value?: string;
+  onPress?: () => void;
 }
 
-function SettingsRow({ icon, label, value }: SettingsRowProps) {
-  return (
-    <View style={styles.row}>
+function SettingsRow({ icon, label, value, onPress }: SettingsRowProps) {
+  const content = (
+    <>
       <View style={styles.rowIcon}>
         <Ionicons color={colors.primary} name={icon} size={20} />
       </View>
       <AppText variant="bodyMedium" style={styles.rowLabel}>
         {label}
       </AppText>
-      <AppText variant="caption" tone="muted" selectable>
-        {value}
-      </AppText>
-    </View>
+      {value ? (
+        <AppText variant="caption" tone="muted" selectable>
+          {value}
+        </AppText>
+      ) : null}
+      {onPress ? (
+        <Ionicons color={colors.textMuted} name="chevron-forward" size={18} />
+      ) : null}
+    </>
+  );
+
+  if (!onPress) {
+    return <View style={styles.row}>{content}</View>;
+  }
+
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+    >
+      {content}
+    </Pressable>
   );
 }
 
 export function SettingsScreen() {
+  const router = useRouter();
   const version = Constants.expoConfig?.version ?? "—";
 
   return (
@@ -43,32 +65,37 @@ export function SettingsScreen() {
       <View style={styles.header}>
         <AppText variant="heading1">Ayarlar</AppText>
         <AppText tone="muted">
-          Uygulama bilgilerini ve gelecekte sunulacak seçenekleri görüntüle.
+          Uygulama bilgilerini, hizmet durumunu ve gizlilik açıklamalarını görüntüle.
         </AppText>
       </View>
 
       <View style={styles.section}>
-        <SectionHeader title="Bağlantı" />
-        <ConnectionStatusCard />
+        <SectionHeader title="Anlat Hoca" />
+        <View style={styles.settingsCard}>
+          <SettingsRow icon="layers-outline" label="Uygulama sürümü" value={version} />
+        </View>
       </View>
 
       <View style={styles.section}>
-        <SectionHeader title="Uygulama" />
+        <SectionHeader title="Gizlilik ve Veriler" />
         <View style={styles.settingsCard}>
-          <SettingsRow icon="layers-outline" label="Sürüm" value={version} />
-          <View style={styles.divider} />
           <SettingsRow
             icon="shield-checkmark-outline"
-            label="Gizlilik"
-            value="Yakında"
+            label="Gizlilik Politikası"
+            onPress={() => router.push("/settings/privacy" as Href)}
           />
           <View style={styles.divider} />
           <SettingsRow
-            icon="information-circle-outline"
-            label="Hakkında"
-            value="Yakında"
+            icon="server-outline"
+            label="Verilerim nasıl kullanılıyor?"
+            onPress={() => router.push("/settings/privacy" as Href)}
           />
         </View>
+      </View>
+
+      <View style={styles.section}>
+        <SectionHeader title="Hizmet Durumu" />
+        <ConnectionStatusCard />
       </View>
 
       <View style={styles.infoCard}>
@@ -76,10 +103,11 @@ export function SettingsScreen() {
           <Ionicons color={colors.accent} name="bulb-outline" size={24} />
         </View>
         <View style={styles.infoCopy}>
-          <AppText variant="heading3">Anlat Hoca V1</AppText>
+          <AppText variant="heading3">Hakkında</AppText>
           <AppText tone="muted">
-            İlk sürüm, notlardan AI destekli çalışma içerikleri oluşturmaya
-            odaklanacak.
+            Anlat Hoca V1; PDF notlarından analiz, 10 / 30 / 60 dakikalık ders,
+            sunum, quiz ve Hocaya Sor deneyimleri oluşturur. Sınava Hazırlan
+            alanında doğrulanmış geçmiş gözlemleri ve yerel çalışma planlarını sunar.
           </AppText>
         </View>
       </View>
@@ -109,6 +137,9 @@ const styles = StyleSheet.create({
     minHeight: 60,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
+  },
+  rowPressed: {
+    backgroundColor: colors.primarySoft,
   },
   rowIcon: {
     alignItems: "center",

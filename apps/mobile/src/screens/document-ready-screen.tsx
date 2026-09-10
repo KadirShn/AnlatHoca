@@ -165,7 +165,7 @@ function getAnalysisErrorMessage(error: unknown): string {
   }
 
   if (error.kind === "configuration") {
-    return "Sunucu adresi yapılandırılmamış.";
+    return "Çevrim içi hizmete şu anda ulaşılamıyor.";
   }
 
   switch (error.serverCode) {
@@ -176,7 +176,7 @@ function getAnalysisErrorMessage(error: unknown): string {
     case "ANALYSIS_IN_PROGRESS":
       return "Bu belge zaten analiz ediliyor.";
     case "AI_NOT_CONFIGURED":
-      return "Belge analiz servisi şu anda yapılandırılmamış.";
+      return "Belge analiz hizmeti şu anda kullanılamıyor.";
     case "ANALYSIS_FAILED":
     case "UPSTREAM_ERROR":
       return "Bu belge şu anda analiz edilemedi. Tekrar deneyebilirsin.";

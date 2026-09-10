@@ -75,6 +75,10 @@ export default function RootLayout() {
           name="exams/[examId]/[subjectId]/plan"
           options={{ title: "Ne kadar vaktin var?" }}
         />
+        <Stack.Screen
+          name="settings/privacy"
+          options={{ title: "Gizlilik ve Veriler" }}
+        />
       </Stack>
       <StatusBar style="dark" />
     </AppBootstrapProvider>

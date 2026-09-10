@@ -23,6 +23,14 @@ export const MAX_LIBRARY_ITEM_LIMIT = 50;
 export const HOME_RECENT_LESSON_LIMIT = 3;
 
 export {
+  PRIVACY_POLICY_INTRO,
+  PRIVACY_POLICY_LAST_UPDATED,
+  PRIVACY_POLICY_SECTIONS,
+  PUBLIC_PRIVACY_POLICY_URL,
+  type PrivacyPolicySection,
+} from "./privacy-policy";
+
+export {
   EXAM_PACKS,
   findExamPack,
   parseExamPackRegistry,

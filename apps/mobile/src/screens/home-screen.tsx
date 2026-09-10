@@ -57,16 +57,7 @@ export function HomeScreen() {
         <SectionHeader title="Çalışmaya Başla" />
         <View style={styles.cardList}>
           <FeatureCard
-            badge="Hızlı"
-            description="10, 30 veya 60 dakikada en önemli konulara odaklan."
-            icon={
-              <Ionicons color={colors.primary} name="timer" size={iconSize} />
-            }
-            onPress={() => router.push("/quick-study")}
-            title="Sınava Az Kaldı"
-          />
-          <FeatureCard
-            badge="AI"
+            badge="Yapay zekâ"
             description="PDF notlarını yükle, konuları analiz edip sana uygun bir derse dönüştürelim."
             icon={
               <Ionicons
@@ -79,7 +70,7 @@ export function HomeScreen() {
             title="Hocam Şunu Anlat"
           />
           <FeatureCard
-            description="TYT ve KPSS için hazırlanmış çalışma akışlarını keşfet."
+            description="TYT ve KPSS alanlarını keşfet; doğrulanmış konularda 10, 30 veya 60 dakikalık plan oluştur."
             icon={
               <Ionicons color={colors.primary} name="school" size={iconSize} />
             }

@@ -122,7 +122,7 @@ export function DocumentUploadScreen() {
         <InlineMessage message={validationError} tone="danger" />
       ) : null}
 
-      <InlineMessage message="PDF, yapay zekâ ile işlenmek üzere güvenli bağlantı üzerinden gönderilir. Kişisel veya hassas belgeleri yüklememeni öneririz; orijinal PDF Anlat Hoca tarafından kalıcı olarak saklanmaz." />
+      <InlineMessage message="Yüklediğin PDF, istediğin yapay zekâ özelliklerini oluşturmak için Anlat Hoca üzerinden Google'ın Gemini hizmetine gönderilir. Kişisel, gizli veya gereksiz hassas bilgiler içeren belgeleri yüklememeni öneririz. Orijinal PDF Anlat Hoca'nın veritabanında saklanmaz." />
 
       <View style={styles.footer}>
         <AppButton
@@ -182,7 +182,7 @@ function getUploadErrorMessage(error: unknown): string {
   }
 
   if (error.kind === "configuration") {
-    return "Sunucu adresi yapılandırılmamış.";
+    return "Çevrim içi hizmete şu anda ulaşılamıyor.";
   }
 
   switch (error.serverCode) {
@@ -193,7 +193,7 @@ function getUploadErrorMessage(error: unknown): string {
     case "INVALID_FILE":
       return "Bu PDF kullanılamıyor. Lütfen başka bir dosya seç.";
     case "AI_NOT_CONFIGURED":
-      return "Belge analiz servisi şu anda yapılandırılmamış.";
+      return "Belge işleme hizmeti şu anda kullanılamıyor.";
     case "UPSTREAM_ERROR":
       return "Belge şu anda hazırlanamadı. Lütfen tekrar dene.";
     default:

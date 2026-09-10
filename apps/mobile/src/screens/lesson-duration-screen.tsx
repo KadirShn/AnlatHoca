@@ -210,7 +210,7 @@ function getGenerationErrorMessage(error: unknown): string {
   }
 
   if (error.kind === "configuration") {
-    return "Sunucu adresi yapılandırılmamış.";
+    return "Çevrim içi hizmete şu anda ulaşılamıyor.";
   }
 
   switch (error.serverCode) {
@@ -225,7 +225,7 @@ function getGenerationErrorMessage(error: unknown): string {
     case "INVALID_LESSON_DURATION":
       return "Çalışma süresi 10, 30 veya 60 dakika olmalıdır.";
     case "AI_NOT_CONFIGURED":
-      return "Ders oluşturma servisi şu anda yapılandırılmamış.";
+      return "Ders oluşturma hizmeti şu anda kullanılamıyor.";
     case "LESSON_GENERATION_FAILED":
     case "UPSTREAM_ERROR":
       return "Ders şu anda oluşturulamadı. Tekrar deneyebilirsin.";

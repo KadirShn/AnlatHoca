@@ -1,3 +1,5 @@
-import { QuickStudyScreen } from "@/screens/quick-study-screen";
+import { Redirect } from "expo-router";
 
-export default QuickStudyScreen;
+export default function QuickStudyRedirect() {
+  return <Redirect href="/exams" />;
+}

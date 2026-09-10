@@ -25,14 +25,14 @@ function getStatusPresentation(state: AppBootstrapState): StatusPresentation {
     case "initializing":
       return {
         title: "Bağlantı kontrol ediliyor",
-        description: "Anlat Hoca API bağlantısı hazırlanıyor.",
+        description: "Çevrim içi özellikler hazırlanıyor.",
         icon: "time-outline",
         color: colors.accent,
       };
     case "ready":
       return {
-        title: "Sunucuya bağlı",
-        description: "Misafir oturumu hazır.",
+        title: "Çevrim içi",
+        description: "Çevrim içi özellikler kullanılabilir.",
         icon: "checkmark-circle-outline",
         color: colors.success,
       };
@@ -42,17 +42,14 @@ function getStatusPresentation(state: AppBootstrapState): StatusPresentation {
         description:
           state.reason === "timeout"
             ? "Sunucu zamanında yanıt vermedi."
-            : "Ağ bağlantını ve API adresini kontrol et.",
+            : "İnternet bağlantını kontrol edip tekrar dene.",
         icon: "cloud-offline-outline",
         color: colors.danger,
       };
     case "configurationError":
       return {
-        title:
-          state.reason === "missing"
-            ? "API adresi yapılandırılmamış"
-            : "API adresi geçersiz",
-        description: "Yerel .env dosyasındaki API adresini kontrol et.",
+        title: "Çevrim içi özellikler kullanılamıyor",
+        description: "Uygulama desteğine başvurup daha sonra tekrar dene.",
         icon: "warning-outline",
         color: colors.accent,
       };
@@ -87,7 +84,7 @@ export function ConnectionStatusCard() {
         </View>
       </View>
       <AppButton
-        label="Bağlantıyı Tekrar Kontrol Et"
+        label="Durumu Tekrar Kontrol Et"
         loading={isLoading}
         onPress={retry}
         variant="secondary"

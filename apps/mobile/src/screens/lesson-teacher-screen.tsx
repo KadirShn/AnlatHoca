@@ -196,6 +196,14 @@ export function LessonTeacherScreen() {
             </View>
           </View>
 
+          <View style={styles.aiNotice}>
+            <Ionicons color={colors.textMuted} name="information-circle-outline" size={18} />
+            <AppText selectable tone="muted" variant="caption" style={styles.aiNoticeCopy}>
+              Sorun ve ilgili ders bağlamı, yanıt oluşturulurken bir yapay zekâ
+              hizmeti tarafından işlenir.
+            </AppText>
+          </View>
+
           {screenState.thread.messages.length === 0 ? (
             <TeacherIntroduction />
           ) : (
@@ -420,6 +428,15 @@ const styles = StyleSheet.create({
     width: 42,
   },
   headerCopy: { flex: 1, gap: spacing.xs },
+  aiNotice: {
+    alignItems: "flex-start",
+    backgroundColor: colors.surfaceMuted,
+    borderRadius: radius.md,
+    flexDirection: "row",
+    gap: spacing.sm,
+    padding: spacing.md,
+  },
+  aiNoticeCopy: { flex: 1 },
   introCard: {
     backgroundColor: colors.primarySoft,
     borderColor: colors.border,
