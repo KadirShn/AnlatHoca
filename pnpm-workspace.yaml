@@ -2,6 +2,11 @@ packages:
   - "apps/*"
   - "packages/*"
 
+# Keep pnpm's isolated layout for Expo/Metro, but shorten native dependency
+# paths enough for Windows CMake/Ninja builds.
+virtualStoreDir: .pnpm
+virtualStoreDirMaxLength: 20
+
 overrides:
   react-native-worklets: 0.10.1
 

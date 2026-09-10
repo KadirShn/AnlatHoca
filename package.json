@@ -18,5 +18,10 @@
     "deploy:api": "pnpm --filter @anlat-hoca/api run deploy",
     "db:migrate:remote": "pnpm --filter @anlat-hoca/api db:migrate:remote",
     "db:migrations:list:remote": "pnpm --filter @anlat-hoca/api db:migrations:list:remote"
+  },
+  "dependencies": {
+    "expo": "~57.0.21",
+    "react": "19.2.3",
+    "react-native": "0.86.3"
   }
 }
