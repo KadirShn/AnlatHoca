@@ -22,7 +22,7 @@ The learner can open **Hocaya Sor** from a persisted lesson and continue one les
 
 The learner can return to Home or Library to reopen saved work. Home shows at most the three newest completed lessons. Library separates completed lessons from uploaded documents, shows lightweight quiz and teacher-conversation metadata, and never regenerates educational content. An analyzed document opens its cached analysis; an uploaded document returns to the explicit analysis-ready step.
 
-V1 has no account, advertising, analytics, notifications, or tracking SDK. Before PDF upload and inside Hocaya Sor, the app explains when content is processed by a third-party AI service. A Turkish privacy policy is available natively and through the public Worker. Installation-scoped records can be reopened, but V1 does not yet provide an installation-wide deletion action; this remains a release-readiness decision rather than a claimed capability.
+V1 has no account, advertising, analytics, notifications, or tracking SDK. Before PDF upload and inside Hocaya Sor, the app explains when content is processed by a third-party AI service. A Turkish privacy policy is available natively and through the public Worker. The user can explicitly delete the persistent study history associated with the current installation from the native privacy screen; provider-file cleanup is best-effort and does not block D1 deletion.
 
 ## Features planned for later
 

@@ -46,6 +46,20 @@ The Library repository scopes both queries by the anonymous installation identif
 
 The endpoint is strictly read-only and has no AI-provider dependency. It does not create sessions, documents, lessons, quizzes, attempts, threads, or messages. Existing indexes support the ownership joins and foreign-key lookups for this bounded V1 result set, so no schema migration is required.
 
+## Installation-scoped deletion flow
+
+```text
+Settings / Privacy / explicit confirmation
+  -> POST /privacy/delete-data with installation UUID
+  -> list temporary Gemini file references
+  -> best-effort cleanup of live/unknown-expiry files
+  -> DELETE guest_installations root
+  -> D1 cascades through every installation-owned learning artifact
+  -> bootstrap the same local UUID as an empty guest session
+```
+
+The response is identical for an unknown or already-deleted UUID, so the route does not expose existence. Provider cleanup failures are intentionally isolated from persistent deletion. Migrations 0001–0006 already provide the required cascade chain, so this flow adds no schema migration or cloud resource.
+
 ## Current document upload flow
 
 ```text

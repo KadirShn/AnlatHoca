@@ -1,5 +1,6 @@
 import {
   analyzeDocumentRequestSchema,
+  deleteInstallationDataRequestSchema,
   guestSessionRequestSchema,
   generateQuizRequestSchema,
   installationIdSchema,
@@ -32,6 +33,7 @@ import { D1DocumentAnalysisRepository } from "./data/document-analysis-repositor
 import { D1DocumentLessonRepository } from "./data/document-lesson-repository";
 import { D1DocumentRepository } from "./data/document-repository";
 import { D1InstallationRepository } from "./data/installation-repository";
+import { D1InstallationDataDeletionRepository } from "./data/installation-data-deletion-repository";
 import { D1LibraryRepository } from "./data/library-repository";
 import { D1LessonQuizRepository } from "./data/lesson-quiz-repository";
 import { D1QuizAttemptRepository } from "./data/quiz-attempt-repository";
@@ -66,6 +68,7 @@ import {
   listExamPacks,
 } from "./services/exam-pack-service";
 import { getLibrary } from "./services/library-service";
+import { deleteInstallationData } from "./services/installation-data-deletion-service";
 import {
   generateQuiz,
   getQuizAttemptDetail,
@@ -129,6 +132,40 @@ app.get("/privacy", (context) =>
     "Content-Type": "text/html; charset=UTF-8",
     "X-Content-Type-Options": "nosniff",
   }),
+);
+
+app.post(
+  "/privacy/delete-data",
+  bodyLimit({
+    maxSize: 1_024,
+    onError: (context) =>
+      context.json(errorResponse("INVALID_REQUEST", "Geçersiz istek."), 400),
+  }),
+  async (context) => {
+    const body = await readJsonBody(context.req.raw);
+    const request = deleteInstallationDataRequestSchema.safeParse(body);
+
+    if (!request.success) {
+      return context.json(
+        errorResponse("INVALID_REQUEST", "Geçersiz istek."),
+        400,
+      );
+    }
+
+    const apiKey = context.env.GEMINI_API_KEY?.trim();
+
+    try {
+      const response = await deleteInstallationData(request.data, {
+        repository: new D1InstallationDataDeletionRepository(context.env.DB),
+        fileCleaner: apiKey ? new GeminiFilesProvider(apiKey) : undefined,
+      });
+
+      return context.json(response);
+    } catch (error) {
+      logOperationalError("installation_data_delete", error);
+      return context.json(internalErrorResponse(), 500);
+    }
+  },
 );
 
 app.get("/health", async (context) => {
@@ -789,6 +826,8 @@ app.all("/session", (context) =>
     { Allow: "POST" },
   ),
 );
+
+app.all("/privacy/delete-data", methodNotAllowed);
 
 app.all("/library", methodNotAllowed);
 app.all("/exam-packs", methodNotAllowedGet);

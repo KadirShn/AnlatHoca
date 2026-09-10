@@ -13,7 +13,8 @@ describe("GET /privacy", () => {
     assert.match(response.headers.get("content-type") ?? "", /charset=UTF-8/i);
     assert.match(html, /<html lang="tr">/);
     assert.match(html, /Gemini hizmetine gönderilir/);
-    assert.match(html, /topluca silme özelliği bulunmaz/);
+    assert.match(html, /Verilerimi Sil/);
+    assert.match(html, /kadselbur1@gmail\.com/);
     assert.doesNotMatch(html, /<script/i);
   });
 });

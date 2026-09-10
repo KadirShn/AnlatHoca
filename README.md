@@ -2,7 +2,7 @@
 
 Anlat Hoca is an AI-powered mobile study application being built with Expo and Cloudflare Workers.
 
-The repository supports PDF selection and transfer, temporary Gemini Files preparation, real AI document analysis, topic extraction, time-aware 10/30/60 minute lesson generation, persistent D1 caching, interactive presentation mode, lesson-grounded multiple-choice quizzes, persisted lesson-scoped **Hocaya Sor** conversations, an installation-scoped Library, and a versioned prepared-exam-pack catalog foundation. The Worker and D1 backend are deployed to Cloudflare production. Voice/TTS, prepared exam lessons, authentication, permanent raw-file storage, and store distribution are not implemented.
+The repository supports PDF selection and transfer, temporary Gemini Files preparation, real AI document analysis, topic extraction, time-aware 10/30/60 minute lesson generation, persistent D1 caching, interactive presentation mode, lesson-grounded multiple-choice quizzes, persisted lesson-scoped **Hocaya Sor** conversations, an installation-scoped Library and deletion flow, and a versioned prepared-exam-pack catalog foundation. The Worker and D1 backend are deployed to Cloudflare production. Voice/TTS, prepared exam lessons, authentication, permanent raw-file storage, and public store distribution are not implemented.
 
 ## Technology stack
 
@@ -110,4 +110,4 @@ The insight dataset covers the official public 10% samples from the completed 20
 
 ## Privacy and release readiness
 
-The Turkish V1 privacy policy is rendered from one shared source in the native `/settings/privacy` screen and at `GET /privacy` on the existing Worker. It truthfully describes anonymous installation scoping, voluntary PDF transfer to Google Gemini, Cloudflare D1 persistence, static exam insights, and the current absence of installation-wide data deletion. The internal [Google Play data safety worksheet](docs/release/google-play-data-safety.md) separates observed technical flows from Play Console classifications that still require Stage 18 verification.
+The Turkish V1 privacy policy is rendered from one shared source in the native `/settings/privacy` screen and at `GET /privacy` on the existing Worker. It truthfully describes anonymous installation scoping, voluntary PDF transfer to Google Gemini, Cloudflare D1 persistence, static exam insights, and installation-scoped user deletion. The internal [Google Play data safety worksheet](docs/release/google-play-data-safety.md) separates observed technical flows from Play Console classifications that the publisher must confirm in the live form. Release copy and human-owned checks are under `docs/release/`.

@@ -12,7 +12,7 @@ import { colors, radius, spacing } from "@/theme";
 
 import { AppText } from "./app-text";
 
-type AppButtonVariant = "primary" | "secondary" | "ghost";
+type AppButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 
 interface AppButtonProps {
   label: string;
@@ -107,6 +107,12 @@ const styles = StyleSheet.create({
   ghostPressed: {
     backgroundColor: colors.primarySoft,
   },
+  danger: {
+    backgroundColor: colors.danger,
+  },
+  dangerPressed: {
+    backgroundColor: "#991B1B",
+  },
   disabled: {
     backgroundColor: colors.disabled,
     borderColor: colors.disabled,
@@ -135,5 +141,11 @@ const variantStyles = {
     pressed: styles.ghostPressed,
     textTone: "primary" as const,
     spinnerColor: colors.primary,
+  },
+  danger: {
+    container: styles.danger,
+    pressed: styles.dangerPressed,
+    textTone: "onPrimary" as const,
+    spinnerColor: colors.textOnPrimary,
   },
 };

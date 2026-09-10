@@ -238,4 +238,10 @@ EXPO_PUBLIC_API_BASE_URL=https://anlat-hoca-api.shnkadir.workers.dev
 
 This URL is public client configuration, not a secret. Restart Expo after changing it. The local Worker does not need to run when this URL is selected.
 
-A future EAS production build must receive `EXPO_PUBLIC_API_BASE_URL` as build-time public configuration. Never provide `GEMINI_API_KEY` or any backend secret to EAS or the mobile bundle.
+The tracked `apps/mobile/eas.json` production profile supplies `EXPO_PUBLIC_API_BASE_URL` as public build-time configuration and requests an Android App Bundle. From `apps/mobile`, an authenticated publisher can start the build with:
+
+```powershell
+corepack pnpm dlx eas-cli@latest build --platform android --profile production
+```
+
+EAS signing credentials must remain in the secure EAS credential flow. Never provide `GEMINI_API_KEY` or any backend secret to EAS or the mobile bundle.

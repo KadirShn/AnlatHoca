@@ -30,6 +30,22 @@ export const guestSessionResponseSchema = z
 
 export type GuestSessionResponse = z.infer<typeof guestSessionResponseSchema>;
 
+export const deleteInstallationDataRequestSchema = z
+  .object({ installationId: installationIdSchema })
+  .strict();
+
+export type DeleteInstallationDataRequest = z.infer<
+  typeof deleteInstallationDataRequestSchema
+>;
+
+export const deleteInstallationDataResponseSchema = z
+  .object({ status: z.literal("deleted") })
+  .strict();
+
+export type DeleteInstallationDataResponse = z.infer<
+  typeof deleteInstallationDataResponseSchema
+>;
+
 export const documentIdSchema = z.string().uuid();
 
 export const uploadedDocumentSchema = z

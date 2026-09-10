@@ -5,14 +5,22 @@ import {
   PRIVACY_POLICY_SECTIONS,
   PUBLIC_PRIVACY_POLICY_URL,
 } from "@anlat-hoca/config";
+import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Linking, StyleSheet, View } from "react-native";
+import { Alert, Linking, StyleSheet, View } from "react-native";
 
+import { deleteInstallationData } from "@/api";
 import { AppButton, AppText, InlineMessage, ScreenContainer } from "@/components";
+import { useAppBootstrap } from "@/providers/app-bootstrap-provider";
+import { getOrCreateInstallationId } from "@/services/installation/installation-id";
 import { colors, radius, spacing } from "@/theme";
 
 export function PrivacyPolicyScreen() {
+  const router = useRouter();
+  const { retry: retryBootstrap } = useAppBootstrap();
   const [linkError, setLinkError] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   async function openPublicPolicy() {
     setLinkError(null);
@@ -21,6 +29,43 @@ export function PrivacyPolicyScreen() {
       await Linking.openURL(PUBLIC_PRIVACY_POLICY_URL);
     } catch {
       setLinkError("Gizlilik politikasının internet sayfası şu anda açılamadı.");
+    }
+  }
+
+  function confirmDataDeletion() {
+    Alert.alert(
+      "Çalışma verilerini sil",
+      "Bu kurulumla ilişkili belgeler, analizler, dersler, quiz sonuçları ve Hocaya Sor geçmişi kalıcı olarak silinecek. Bu işlem geri alınamaz.",
+      [
+        { text: "Vazgeç", style: "cancel" },
+        {
+          text: "Verilerimi Sil",
+          style: "destructive",
+          onPress: () => void performDataDeletion(),
+        },
+      ],
+    );
+  }
+
+  async function performDataDeletion() {
+    setDeleteError(null);
+    setIsDeleting(true);
+
+    try {
+      const installationId = await getOrCreateInstallationId();
+      await deleteInstallationData(installationId);
+      retryBootstrap();
+      router.replace("/");
+      Alert.alert(
+        "Verilerin silindi",
+        "Bu kurulumla ilişkili çalışma geçmişin silindi. Uygulamayı boş bir geçmişle kullanmaya devam edebilirsin.",
+      );
+    } catch {
+      setDeleteError(
+        "Verilerin şu anda silinemedi. Daha sonra tekrar deneyebilirsin.",
+      );
+    } finally {
+      setIsDeleting(false);
     }
   }
 
@@ -49,6 +94,23 @@ export function PrivacyPolicyScreen() {
           ))}
         </View>
       ))}
+
+      <View style={styles.deletionCard}>
+        <AppText variant="heading3">Verilerimi Sil</AppText>
+        <AppText tone="muted">
+          Bu işlem hesabı silmez; Anlat Hoca V1 hesabı kullanmaz. Yalnızca bu
+          kurulum kimliğiyle ilişkilendirilen kalıcı çalışma verilerini siler.
+        </AppText>
+        {deleteError ? (
+          <InlineMessage message={deleteError} tone="danger" />
+        ) : null}
+        <AppButton
+          label="Verilerimi Sil"
+          loading={isDeleting}
+          onPress={confirmDataDeletion}
+          variant="danger"
+        />
+      </View>
 
       <View style={styles.publicLink}>
         <AppText variant="bodyMedium">İnternette görüntüle</AppText>
@@ -92,5 +154,14 @@ const styles = StyleSheet.create({
   },
   publicLink: {
     gap: spacing.md,
+  },
+  deletionCard: {
+    backgroundColor: colors.dangerSoft,
+    borderColor: colors.danger,
+    borderCurve: "continuous",
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    gap: spacing.md,
+    padding: spacing.xl,
   },
 });

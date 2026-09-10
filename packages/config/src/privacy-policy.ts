@@ -1,6 +1,8 @@
 export const PUBLIC_PRIVACY_POLICY_URL =
   "https://anlat-hoca-api.shnkadir.workers.dev/privacy" as const;
 
+export const SUPPORT_EMAIL = "kadselbur1@gmail.com" as const;
+
 export const PRIVACY_POLICY_LAST_UPDATED = "10 Eylül 2026" as const;
 
 export const PRIVACY_POLICY_INTRO =
@@ -49,10 +51,10 @@ export const PRIVACY_POLICY_SECTIONS: readonly PrivacyPolicySection[] = [
     ],
   },
   {
-    title: "Saklama ve silme sınırlaması",
+    title: "Saklama ve silme",
     paragraphs: [
-      "V1'de kurulum kapsamındaki tüm sunucu verilerini uygulama içinden topluca silme özelliği bulunmaz. Uygulamayı kaldırmak veya cihazdaki kurulum UUID'sini temizlemek, daha önce D1'de saklanan kayıtları otomatik olarak silmez. Bu sınırlama mağaza yayını öncesinde ayrıca değerlendirilecektir.",
-      "Gemini'ye aktarılan geçici dosyalar sağlayıcının geçici dosya yaşam döngüsüne tabidir. Anlat Hoca, kısmi yükleme hatalarında geçici sağlayıcı kaynağını temizlemeyi dener; ancak kesin saklama süreleri için ilgili sağlayıcının güncel koşulları dikkate alınmalıdır.",
+      "Ayarlar > Gizlilik ve Veriler > Verilerimi Sil seçeneğiyle bu kurulum kimliğiyle ilişkili kalıcı çalışma verilerini silebilirsin. Buna belge metadatası, analizler, dersler, quizler ve sonuçları ile Hocaya Sor konuşmaları dahildir. Uygulamayı kaldırmak tek başına sunucu verilerini silmez.",
+      "Silme sırasında süresi dolmamış Gemini geçici dosyaları da mümkün olduğunda kaldırılmaya çalışılır. Anlat Hoca'nın kalıcı kayıtları bu dış temizlik başarısız olsa bile silinir; hemen silinemeyen geçici üçüncü taraf işleme verileri sağlayıcının kendi geçici yaşam döngüsüne tabi olabilir.",
     ],
   },
   {
@@ -60,6 +62,12 @@ export const PRIVACY_POLICY_SECTIONS: readonly PrivacyPolicySection[] = [
     paragraphs: [
       "PDF yüklememeyi, Hocaya Sor'u kullanmamayı veya yalnızca kullanıcı verisi göndermeyen Sınava Hazırlan içeriklerini kullanmayı seçebilirsin.",
       "Uygulamanın veri işleme davranışı değişirse bu politika da güncellenir. Politikanın güncel sürümü Ayarlar ekranında ve halka açık bağlantıda sunulur.",
+    ],
+  },
+  {
+    title: "İletişim",
+    paragraphs: [
+      "Gizlilik veya veri işleme konularındaki soruların için kadselbur1@gmail.com adresine yazabilirsin.",
     ],
   },
 ] as const;

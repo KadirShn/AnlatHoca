@@ -27,6 +27,7 @@ export {
   PRIVACY_POLICY_LAST_UPDATED,
   PRIVACY_POLICY_SECTIONS,
   PUBLIC_PRIVACY_POLICY_URL,
+  SUPPORT_EMAIL,
   type PrivacyPolicySection,
 } from "./privacy-policy";
 

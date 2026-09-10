@@ -12,6 +12,7 @@ export {
   getExamSubjectInsights,
 } from "./exam-packs";
 export { getLibrary } from "./library";
+export { deleteInstallationData } from "./privacy";
 export {
   getOrCreateQuiz,
   getQuizAttemptDetail,
