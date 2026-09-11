@@ -1,5 +1,6 @@
+import { OwlLoader } from "@/components/owl-loader";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 
 import { PDF_SIZE_LIMIT_LABEL } from "@anlat-hoca/config";
 
@@ -32,7 +33,7 @@ export function DocumentPickerCard({
     >
       <View style={styles.iconContainer}>
         {loading ? (
-          <ActivityIndicator color={colors.primary} size="large" />
+          <OwlLoader color={colors.primary} decorative />
         ) : (
           <Ionicons
             color={colors.primary}
@@ -42,14 +43,14 @@ export function DocumentPickerCard({
         )}
       </View>
 
-      <View style={styles.copy}>
+      {!loading ? <View style={styles.copy}>
         <AppText variant="heading3" style={styles.centerText}>
-          {loading ? "Dosya açılıyor..." : "PDF Dosyası Seç"}
+          PDF Dosyası Seç
         </AppText>
         <AppText tone="muted" style={styles.centerText}>
           {PDF_SIZE_LIMIT_LABEL}
         </AppText>
-      </View>
+      </View> : null}
 
       {!loading ? (
         <View style={styles.actionPill}>

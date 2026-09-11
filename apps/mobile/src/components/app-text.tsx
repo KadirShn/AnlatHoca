@@ -17,7 +17,7 @@ type AppTextProps = PropsWithChildren<
 const tones = StyleSheet.create({
   default: { color: colors.text },
   muted: { color: colors.textMuted },
-  primary: { color: colors.primary },
+  primary: { color: colors.primaryDark },
   danger: { color: colors.danger },
   onPrimary: { color: colors.textOnPrimary },
 });

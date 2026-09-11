@@ -4,17 +4,20 @@ export const typography = {
   display: {
     fontSize: 32,
     lineHeight: 39,
-    fontWeight: "700",
+    fontWeight: "800",
+    letterSpacing: -0.7,
   },
   heading1: {
     fontSize: 26,
     lineHeight: 33,
-    fontWeight: "700",
+    fontWeight: "800",
+    letterSpacing: -0.4,
   },
   heading2: {
     fontSize: 22,
     lineHeight: 29,
-    fontWeight: "700",
+    fontWeight: "800",
+    letterSpacing: -0.25,
   },
   heading3: {
     fontSize: 18,

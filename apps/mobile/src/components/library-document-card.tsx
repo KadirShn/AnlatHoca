@@ -2,7 +2,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import type { LibraryDocumentSummary } from "@anlat-hoca/contracts";
 import { Pressable, StyleSheet, View } from "react-native";
 
-import { colors, radius, spacing } from "@/theme";
+import { colors, radius, shadows, spacing } from "@/theme";
 import { formatLibraryDate } from "@/utils/format-library-date";
 
 import { AppText } from "./app-text";
@@ -88,10 +88,11 @@ function Metadata({
 
 const styles = StyleSheet.create({
   card: {
+    ...shadows.card,
     backgroundColor: colors.surface,
     borderColor: colors.border,
     borderCurve: "continuous",
-    borderRadius: radius.lg,
+    borderRadius: radius.xl,
     borderWidth: 1,
     gap: spacing.md,
     padding: spacing.lg,

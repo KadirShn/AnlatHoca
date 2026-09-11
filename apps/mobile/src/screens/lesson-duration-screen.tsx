@@ -12,6 +12,7 @@ import {
   AppButton,
   AppText,
   InlineMessage,
+  OwlLoader,
   ScreenContainer,
 } from "@/components";
 import { useAppBootstrap } from "@/providers/app-bootstrap-provider";
@@ -105,6 +106,14 @@ export function LessonDurationScreen() {
     );
   }
 
+  if (isGenerating) {
+    return (
+      <ScreenContainer contentContainerStyle={styles.centered} edges={["left", "right", "bottom"]}>
+        <OwlLoader size="large" accessibilityLabel="Ders hazırlanıyor" />
+      </ScreenContainer>
+    );
+  }
+
   return (
     <ScreenContainer edges={["left", "right", "bottom"]}>
       <View style={styles.intro}>
@@ -165,21 +174,6 @@ export function LessonDurationScreen() {
         })}
       </View>
 
-      {isGenerating ? (
-        <View
-          accessibilityLiveRegion="polite"
-          accessibilityRole="progressbar"
-          style={styles.generationCard}
-        >
-          <Ionicons color={colors.primary} name="sparkles-outline" size={24} />
-          <View style={styles.generationCopy}>
-            <AppText variant="bodyMedium">Ders hazırlanıyor...</AppText>
-            <AppText tone="muted" variant="caption">
-              Belgedeki konular seçtiğin süreye göre düzenleniyor.
-            </AppText>
-          </View>
-        </View>
-      ) : null}
 
       {errorMessage ? (
         <InlineMessage message={errorMessage} tone="danger" />
@@ -210,7 +204,7 @@ function getGenerationErrorMessage(error: unknown): string {
   }
 
   if (error.kind === "configuration") {
-    return "Çevrim içi hizmete şu anda ulaşılamıyor.";
+    return "Çevrimiçi hizmete şu anda ulaşılamıyor.";
   }
 
   switch (error.serverCode) {

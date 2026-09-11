@@ -12,6 +12,7 @@ import {
   AppButton,
   AppText,
   InlineMessage,
+  OwlLoader,
   ScreenContainer,
 } from "@/components";
 import { useAppBootstrap } from "@/providers/app-bootstrap-provider";
@@ -54,6 +55,14 @@ export function DocumentReadyScreen() {
     }
   };
 
+  if (isAnalyzing) {
+    return (
+      <ScreenContainer contentContainerStyle={styles.content} edges={["left", "right", "bottom"]}>
+        <OwlLoader size="large" accessibilityLabel="Belge inceleniyor" />
+      </ScreenContainer>
+    );
+  }
+
   return (
     <ScreenContainer
       contentContainerStyle={styles.content}
@@ -84,17 +93,6 @@ export function DocumentReadyScreen() {
               loading={isAnalyzing}
               onPress={() => void handleAnalyze()}
             />
-            {isAnalyzing ? (
-              <AppText
-                accessibilityLiveRegion="polite"
-                style={styles.centerText}
-                tone="muted"
-                variant="caption"
-              >
-                PDF inceleniyor ve çalışma konuları belirleniyor. Bu işlem
-                biraz sürebilir.
-              </AppText>
-            ) : null}
             <AppButton
               accessibilityLabel="Belge seçimine geri dön"
               disabled={isAnalyzing}
@@ -165,7 +163,7 @@ function getAnalysisErrorMessage(error: unknown): string {
   }
 
   if (error.kind === "configuration") {
-    return "Çevrim içi hizmete şu anda ulaşılamıyor.";
+    return "Çevrimiçi hizmete şu anda ulaşılamıyor.";
   }
 
   switch (error.serverCode) {
@@ -178,8 +176,9 @@ function getAnalysisErrorMessage(error: unknown): string {
     case "AI_NOT_CONFIGURED":
       return "Belge analiz hizmeti şu anda kullanılamıyor.";
     case "ANALYSIS_FAILED":
-    case "UPSTREAM_ERROR":
       return "Bu belge şu anda analiz edilemedi. Tekrar deneyebilirsin.";
+    case "UPSTREAM_ERROR":
+      return "Belge analizi beklenenden uzun sürdü veya analiz hizmetine ulaşılamadı. Tekrar deneyebilirsin.";
     default:
       return "Bu belge şu anda analiz edilemedi. Tekrar deneyebilirsin.";
   }

@@ -1,5 +1,7 @@
 export { AppButton } from "./app-button";
 export { AppText } from "./app-text";
+export { OwlLoader } from "./owl-loader";
+export { BrandBackdrop } from "./brand-backdrop";
 export { AnalysisTopicCard } from "./analysis-topic-card";
 export { ConnectionStatusCard } from "./connection-status-card";
 export { DocumentPickerCard } from "./document-picker-card";
@@ -11,6 +13,7 @@ export { FeatureCard } from "./feature-card";
 export { InlineMessage } from "./inline-message";
 export { LibraryDocumentCard } from "./library-document-card";
 export { LibraryLessonCard } from "./library-lesson-card";
+export { PageIntro } from "./page-intro";
 export { ScreenContainer } from "./screen-container";
 export { SelectedDocumentCard } from "./selected-document-card";
 export { SectionHeader } from "./section-header";

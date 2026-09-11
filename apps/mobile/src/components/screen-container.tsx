@@ -13,6 +13,8 @@ import {
 
 import { colors, spacing } from "@/theme";
 
+import { BrandBackdrop } from "./brand-backdrop";
+
 interface ScreenContainerProps extends PropsWithChildren {
   scroll?: boolean;
   edges?: Edge[];
@@ -31,6 +33,7 @@ export function ScreenContainer({
 }: ScreenContainerProps) {
   return (
     <SafeAreaView edges={edges} style={[styles.safeArea, style]}>
+      <BrandBackdrop />
       {scroll ? (
         <ScrollView
           contentContainerStyle={[styles.content, contentContainerStyle]}
@@ -55,10 +58,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
+    alignSelf: "center",
+    width: "100%",
+    maxWidth: 780,
     gap: spacing.xxl,
     paddingBottom: spacing.xxxl,
     paddingHorizontal: spacing.xl,
-    paddingTop: spacing.lg,
+    paddingTop: spacing.xl,
   },
   fill: {
     flex: 1,

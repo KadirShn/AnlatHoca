@@ -1,3 +1,4 @@
+import { OwlLoader } from "@/components/owl-loader";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import {
   quizAttemptIdSchema,
@@ -5,7 +6,7 @@ import {
 } from "@anlat-hoca/contracts";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 import { ApiClientError, getQuizAttemptDetail } from "@/api";
 import { AppButton, AppText, InlineMessage, ScreenContainer } from "@/components";
@@ -69,11 +70,8 @@ export function QuizResultScreen() {
         contentContainerStyle={styles.centered}
         edges={["left", "right", "bottom"]}
       >
-        <ActivityIndicator color={colors.primary} size="large" />
-        <View accessibilityLiveRegion="polite" style={styles.centerCopy}>
-          <AppText variant="heading3">Sonuçların hazırlanıyor...</AppText>
-          <AppText tone="muted">Kaydedilmiş quiz sonucu yükleniyor.</AppText>
-        </View>
+        <OwlLoader color={colors.primary} size="large" accessibilityLabel="Sonuçların hazırlanıyor..." />
+
       </ScreenContainer>
     );
   }

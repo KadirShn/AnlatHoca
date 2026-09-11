@@ -1,3 +1,4 @@
+import { OwlLoader } from "@/components/owl-loader";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import {
   lessonIdSchema,
@@ -6,7 +7,7 @@ import {
 } from "@anlat-hoca/contracts";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 import { ApiClientError, getLessonDetail } from "@/api";
 import {
@@ -72,11 +73,8 @@ export function LessonDetailScreen() {
         contentContainerStyle={styles.centered}
         edges={["left", "right", "bottom"]}
       >
-        <ActivityIndicator color={colors.primary} size="large" />
-        <View style={styles.centerCopy}>
-          <AppText variant="heading3">Ders yükleniyor</AppText>
-          <AppText tone="muted">Kaydedilmiş ders içeriği hazırlanıyor.</AppText>
-        </View>
+        <OwlLoader color={colors.primary} size="large" accessibilityLabel="Ders yükleniyor" />
+
       </ScreenContainer>
     );
   }

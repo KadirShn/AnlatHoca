@@ -1,3 +1,4 @@
+import { OwlLoader } from "@/components/owl-loader";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import {
   lessonIdSchema,
@@ -8,7 +9,6 @@ import { MAX_TEACHER_QUESTION_CHARS } from "@anlat-hoca/config";
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -139,9 +139,7 @@ export function LessonTeacherScreen() {
     return (
       <SafeAreaView edges={["left", "right", "bottom"]} style={styles.safeArea}>
         <View style={styles.centered}>
-          <ActivityIndicator color={colors.primary} size="large" />
-          <AppText variant="heading3">Hoca hazırlanıyor</AppText>
-          <AppText tone="muted">Kaydedilmiş konuşma getiriliyor.</AppText>
+          <OwlLoader color={colors.primary} size="large" accessibilityLabel="Hoca hazırlanıyor" />
         </View>
       </SafeAreaView>
     );
@@ -222,8 +220,7 @@ export function LessonTeacherScreen() {
 
           {sending ? (
             <View accessibilityLiveRegion="polite" style={styles.thinkingRow}>
-              <ActivityIndicator color={colors.primary} size="small" />
-              <AppText tone="muted">Hoca düşünüyor...</AppText>
+              <OwlLoader color={colors.primary} size="small" accessibilityLabel="Hoca düşünüyor..." />
             </View>
           ) : null}
         </ScrollView>

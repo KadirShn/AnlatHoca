@@ -97,7 +97,7 @@ The Gemini API key exists only as the Worker secret `GEMINI_API_KEY` and is sent
 
 The generation provider sends the temporary Gemini file URI and the versioned prompt to the configured model. The output is constrained with a deliberately Gemini-compatible JSON Schema and then validated again with the stricter shared Zod schema. Raw Gemini responses, token metadata, chain-of-thought, prompts, and provider identifiers are not exposed publicly or persisted as analysis output.
 
-`GEMINI_ANALYSIS_MODEL` is a non-secret Worker setting and defaults to `gemini-3.6-flash`. File readiness polling is bounded to approximately 35 seconds, provider generation to 75 seconds, and the mobile request to 120 seconds.
+`GEMINI_ANALYSIS_MODEL` is a non-secret Worker setting and defaults to `gemini-3.6-flash`. File readiness polling is bounded to approximately 35 seconds, provider generation to 150 seconds, and the mobile request to 200 seconds. The mobile budget intentionally exceeds the maximum provider path so the Worker can return a typed error instead of being cut off by the client.
 
 The analysis endpoint returns an existing valid analysis before checking provider configuration or calling Gemini. A D1 compare-and-set status transition prevents ordinary simultaneous requests from both starting generation. Explicit failures reset `analyzing` to `uploaded`; a three-minute stale-claim threshold permits recovery from an interrupted Worker request. This is a modest D1 guard, not a globally serialized lock.
 

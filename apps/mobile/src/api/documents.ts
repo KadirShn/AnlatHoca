@@ -11,8 +11,8 @@ import {
   DOCUMENT_ANALYSIS_TIMEOUT_MS,
   DOCUMENT_UPLOAD_TIMEOUT_MS,
 } from "@anlat-hoca/config";
-import { fetch as expoFetch } from "expo/fetch";
-import { File } from "expo-file-system";
+import * as Crypto from "expo-crypto";
+import { Directory, File, Paths, UploadType } from "expo-file-system";
 
 import { getApiConfiguration } from "@/config/api";
 import type { SelectedDocument } from "@/services/documents";
@@ -42,16 +42,12 @@ export async function uploadDocument({
     });
   }
 
-  const localFile = new File(document.uri);
-  const formData = new FormData();
-  formData.append("installationId", installationId);
-  formData.append(
-    "file",
-    localFile.slice(0, localFile.size, "application/pdf"),
-    document.name,
-  );
-
   const controller = new AbortController();
+  const uploadDirectory = new Directory(
+    Paths.cache,
+    "document-uploads",
+    Crypto.randomUUID(),
+  );
   let timedOut = false;
   const timeout = setTimeout(() => {
     timedOut = true;
@@ -59,24 +55,38 @@ export async function uploadDocument({
   }, DOCUMENT_UPLOAD_TIMEOUT_MS);
 
   try {
-    const response = await expoFetch(
+    uploadDirectory.create({ intermediates: true });
+    const uploadFile = new File(
+      uploadDirectory,
+      sanitizeUploadFilename(document.name),
+    );
+    await new File(document.uri).copy(uploadFile);
+
+    const response = await uploadFile.upload(
       `${configuration.baseUrl}/documents/upload`,
       {
-        method: "POST",
+        httpMethod: "POST",
+        uploadType: UploadType.MULTIPART,
+        fieldName: "file",
+        mimeType: "application/pdf",
+        parameters: { installationId },
         headers: { Accept: "application/json" },
-        body: formData,
         signal: controller.signal,
       },
     );
-    const body: unknown = await response.json().catch((error) => {
+    let body: unknown;
+
+    try {
+      body = JSON.parse(response.body);
+    } catch (error) {
       throw new ApiClientError("API yanıtı geçerli JSON değil.", {
         kind: "invalidResponse",
         status: response.status,
         cause: error,
       });
-    });
+    }
 
-    if (!response.ok) {
+    if (response.status < 200 || response.status >= 300) {
       const apiError = apiErrorResponseSchema.safeParse(body);
 
       throw new ApiClientError("Belge yükleme isteği başarısız oldu.", {
@@ -114,6 +124,27 @@ export async function uploadDocument({
     });
   } finally {
     clearTimeout(timeout);
+    cleanupUploadDirectory(uploadDirectory);
+  }
+}
+
+function sanitizeUploadFilename(value: string): string {
+  const sanitized = value
+    .replace(/[\u0000-\u001F\u007F\u202A-\u202E\u2066-\u2069]/g, "")
+    .replace(/[\\/]/g, "-")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  return [...sanitized].slice(0, 180).join("") || "document.pdf";
+}
+
+function cleanupUploadDirectory(directory: Directory): void {
+  try {
+    if (directory.exists) {
+      directory.delete();
+    }
+  } catch {
+    console.warn(JSON.stringify({ event: "upload_temp_cleanup_failed" }));
   }
 }
 

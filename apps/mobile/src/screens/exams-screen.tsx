@@ -1,16 +1,17 @@
+import { OwlLoader } from "@/components/owl-loader";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import type { ExamPackSummary } from "@anlat-hoca/contracts";
 import { type Href, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 import { getExamPacks } from "@/api";
 import {
   AppButton,
-  AppText,
   EmptyState,
   ExamPackCard,
   InlineMessage,
+  PageIntro,
   ScreenContainer,
 } from "@/components";
 import { colors, spacing } from "@/theme";
@@ -47,17 +48,15 @@ export function ExamsScreen() {
 
   return (
     <ScreenContainer edges={["left", "right", "bottom"]}>
-      <View style={styles.intro}>
-        <AppText variant="heading2">Sınav yolculuğunu planla</AppText>
-        <AppText tone="muted">
-          Hazır çalışma paketlerinden birini seç.
-        </AppText>
-      </View>
+      <PageIntro
+        description="Hazır çalışma paketlerinden birini seç ve hedefini adım adım planla."
+        icon={<Ionicons color={colors.primary} name="trophy-outline" size={27} />}
+        title="Sınav yolculuğunu planla"
+      />
 
       {packs === null && error === null ? (
         <View accessibilityLiveRegion="polite" style={styles.status}>
-          <ActivityIndicator color={colors.primary} size="large" />
-          <AppText tone="muted">Sınav paketleri yükleniyor.</AppText>
+          <OwlLoader color={colors.primary} size="large" accessibilityLabel="Sınav paketleri yükleniyor." />
         </View>
       ) : null}
 
@@ -94,9 +93,6 @@ export function ExamsScreen() {
 }
 
 const styles = StyleSheet.create({
-  intro: {
-    gap: spacing.sm,
-  },
   list: {
     gap: spacing.md,
   },

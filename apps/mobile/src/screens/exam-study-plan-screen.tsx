@@ -1,3 +1,4 @@
+import { OwlLoader } from "@/components/owl-loader";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import {
   examPackIdSchema,
@@ -5,7 +6,7 @@ import {
 } from "@anlat-hoca/contracts";
 import { type Href, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 
 import { getExamSubjectInsights } from "@/api";
 import {
@@ -138,8 +139,7 @@ export function ExamStudyPlanScreen() {
     <ScreenContainer edges={["left", "right", "bottom"]}>
       {!insights && !error ? (
         <View accessibilityLiveRegion="polite" style={styles.centered}>
-          <ActivityIndicator color={colors.primary} size="large" />
-          <AppText tone="muted">Geçmiş gözlemler yükleniyor.</AppText>
+          <OwlLoader color={colors.primary} size="large" accessibilityLabel="Geçmiş gözlemler yükleniyor." />
         </View>
       ) : null}
 

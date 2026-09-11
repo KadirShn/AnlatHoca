@@ -1,3 +1,4 @@
+import { OwlLoader } from "@/components/owl-loader";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import {
   lessonIdSchema,
@@ -6,7 +7,7 @@ import {
 } from "@anlat-hoca/contracts";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 
 import { ApiClientError, getOrCreateQuiz, submitQuiz } from "@/api";
 import { AppButton, AppText, InlineMessage, ScreenContainer } from "@/components";
@@ -77,13 +78,8 @@ export function LessonQuizScreen() {
         contentContainerStyle={styles.centered}
         edges={["left", "right", "bottom"]}
       >
-        <ActivityIndicator color={colors.primary} size="large" />
-        <View accessibilityLiveRegion="polite" style={styles.centerCopy}>
-          <AppText variant="heading3">Quiz hazırlanıyor...</AppText>
-          <AppText selectable tone="muted" style={styles.centerText}>
-            Sorular çalıştığın derse göre hazırlanıyor.
-          </AppText>
-        </View>
+        <OwlLoader color={colors.primary} size="large" accessibilityLabel="Quiz hazırlanıyor..." />
+
       </ScreenContainer>
     );
   }
@@ -287,8 +283,7 @@ function QuizViewer({
 
       {submitting ? (
         <View accessibilityLiveRegion="polite" style={styles.submitting}>
-          <ActivityIndicator color={colors.primary} />
-          <AppText variant="bodyMedium">Sonuçların hazırlanıyor...</AppText>
+          <OwlLoader color={colors.primary} accessibilityLabel="Sonuçların hazırlanıyor..." />
         </View>
       ) : null}
 

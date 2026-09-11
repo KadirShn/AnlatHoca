@@ -1,3 +1,4 @@
+import { OwlLoader } from "@/components/owl-loader";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import {
   examPackIdSchema,
@@ -5,7 +6,7 @@ import {
 } from "@anlat-hoca/contracts";
 import { type Href, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 import { getExamPackDetail } from "@/api";
 import {
@@ -66,8 +67,7 @@ export function ExamPackDetailScreen() {
     <ScreenContainer edges={["left", "right", "bottom"]}>
       {!pack && !visibleError ? (
         <View accessibilityLiveRegion="polite" style={styles.status}>
-          <ActivityIndicator color={colors.primary} size="large" />
-          <AppText tone="muted">Sınav paketi yükleniyor.</AppText>
+          <OwlLoader color={colors.primary} size="large" accessibilityLabel="Sınav paketi yükleniyor." />
         </View>
       ) : null}
 

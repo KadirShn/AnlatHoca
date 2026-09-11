@@ -1,6 +1,7 @@
+import { OwlLoader } from "@/components/owl-loader";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from "expo-router";
-import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { Image, StyleSheet, View } from "react-native";
 import {
   HOME_RECENT_LESSON_LIMIT,
 } from "@anlat-hoca/config";
@@ -37,42 +38,52 @@ export function HomeScreen() {
         <View style={styles.brandCopy}>
           <AppText variant="heading3">Anlat Hoca</AppText>
           <AppText variant="caption" tone="muted">
-            AI destekli çalışma asistanın
+            Daha iyi öğren. Daha ileri git.
           </AppText>
         </View>
       </View>
 
       <View style={styles.hero}>
-        <View style={styles.heroIcon}>
-          <Ionicons color={colors.primary} name="sparkles" size={24} />
+        <View pointerEvents="none" accessible={false} style={styles.heroGlow} />
+        <View style={styles.heroTop}>
+          <View style={styles.heroBadge}>
+            <Ionicons color={colors.primaryDeep} name="sparkles" size={15} />
+            <AppText variant="caption" style={styles.heroBadgeText}>
+              SENİN ÇALIŞMA ALANIN
+            </AppText>
+          </View>
+          <Image
+            accessible={false}
+            resizeMode="contain"
+            source={require("../../assets/branding/mascot-master.png")}
+            style={styles.mascot}
+          />
         </View>
-        <AppText variant="display">Bugün ne çalışıyoruz?</AppText>
-        <AppText tone="muted">
-          Notlarını yükle, süreni seç ve sana özel çalışma içeriğini
-          hazırla.
-        </AppText>
+        <View style={styles.heroCopy}>
+          <AppText variant="display" tone="onPrimary">
+            Anlamanın verdiği{"\n"}o güzel his.
+          </AppText>
+          <AppText style={styles.heroDescription}>
+            Bir PDF ile başla. Konuları keşfet, kendi hızında öğren.
+          </AppText>
+        </View>
+        <AppButton
+          label="Notlarımdan ders oluştur"
+          leftIcon={<Ionicons color={colors.primaryDeep} name="add-circle-outline" size={22} />}
+          onPress={() => router.push("/document/upload")}
+          variant="accent"
+        />
       </View>
 
       <View style={styles.section}>
-        <SectionHeader title="Çalışmaya Başla" />
+        <SectionHeader title="Bir sonraki hedefin" />
         <View style={styles.cardList}>
           <FeatureCard
-            badge="Yapay zekâ"
-            description="PDF notlarını yükle, konuları analiz edip sana uygun bir derse dönüştürelim."
+            badge="TYT · KPSS"
+            variant="exam"
+            description="Hedefini seç, konuları keşfet ve zamanına uygun bir çalışma planı hazırla."
             icon={
-              <Ionicons
-                color={colors.primary}
-                name="document-text"
-                size={iconSize}
-              />
-            }
-            onPress={() => router.push("/document/upload")}
-            title="Hocam Şunu Anlat"
-          />
-          <FeatureCard
-            description="TYT ve KPSS alanlarını keşfet; doğrulanmış konularda 10, 30 veya 60 dakikalık plan oluştur."
-            icon={
-              <Ionicons color={colors.primary} name="school" size={iconSize} />
+              <Ionicons color={colors.primaryDeep} name="school" size={iconSize} />
             }
             onPress={() => router.push("/exams")}
             title="Sınava Hazırlan"
@@ -81,14 +92,13 @@ export function HomeScreen() {
       </View>
 
       <View style={styles.section}>
-        <SectionHeader title="Son Dersler" />
+        <SectionHeader title="Kaldığın yerden" actionLabel="Kütüphanem" onActionPress={() => router.push("/library")} />
         {isLoading && data === null ? (
           <View
             accessibilityLiveRegion="polite"
             style={styles.recentLoading}
           >
-            <ActivityIndicator color={colors.primary} />
-            <AppText tone="muted">Son dersler yükleniyor.</AppText>
+            <OwlLoader color={colors.primary} accessibilityLabel="Son dersler yükleniyor." />
           </View>
         ) : error && data === null ? (
           <View style={styles.recentError}>
@@ -139,7 +149,7 @@ const styles = StyleSheet.create({
   },
   brandIcon: {
     alignItems: "center",
-    backgroundColor: colors.primary,
+    backgroundColor: colors.primaryDark,
     borderCurve: "continuous",
     borderRadius: radius.md,
     height: 44,
@@ -151,19 +161,57 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   hero: {
-    backgroundColor: colors.primarySoft,
+    alignItems: "stretch",
+    backgroundColor: colors.primaryDeep,
     borderCurve: "continuous",
-    borderRadius: radius.xl,
-    gap: spacing.md,
-    padding: spacing.xxl,
+    borderRadius: radius.xxl,
+    gap: spacing.xl,
+    overflow: "hidden",
+    padding: spacing.xl,
   },
-  heroIcon: {
+  heroTop: {
     alignItems: "center",
-    backgroundColor: colors.surface,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: spacing.sm,
+  },
+  heroGlow: {
+    backgroundColor: colors.primary,
     borderRadius: radius.full,
-    height: 44,
-    justifyContent: "center",
-    width: 44,
+    height: 220,
+    opacity: 0.4,
+    position: "absolute",
+    right: -110,
+    top: 72,
+    width: 220,
+  },
+  heroCopy: {
+    gap: spacing.md,
+    zIndex: 1,
+  },
+  heroBadge: {
+    alignItems: "center",
+    alignSelf: "flex-start",
+    backgroundColor: colors.primarySoft,
+    borderRadius: radius.full,
+    flexDirection: "row",
+    gap: spacing.xs,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    flexShrink: 1,
+  },
+  heroBadgeText: {
+    flexShrink: 1,
+    color: colors.primaryDeep,
+    fontWeight: "800",
+    letterSpacing: 0.35,
+  },
+  heroDescription: {
+    color: colors.primarySoft,
+  },
+  mascot: {
+    height: 72,
+    width: 72,
   },
   section: {
     gap: spacing.lg,

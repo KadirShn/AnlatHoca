@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderColor: colors.border,
     borderCurve: "continuous",
-    borderRadius: radius.lg,
+    borderRadius: radius.xl,
     borderWidth: 1,
     flexDirection: "row",
     gap: spacing.md,

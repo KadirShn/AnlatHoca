@@ -7,6 +7,7 @@ import { Pressable, StyleSheet, View } from "react-native";
 import {
   AppText,
   ConnectionStatusCard,
+  PageIntro,
   ScreenContainer,
   SectionHeader,
 } from "@/components";
@@ -62,12 +63,11 @@ export function SettingsScreen() {
 
   return (
     <ScreenContainer>
-      <View style={styles.header}>
-        <AppText variant="heading1">Ayarlar</AppText>
-        <AppText tone="muted">
-          Uygulama bilgilerini, hizmet durumunu ve gizlilik açıklamalarını görüntüle.
-        </AppText>
-      </View>
+      <PageIntro
+        description="Uygulama bilgilerini, hizmet durumunu ve gizlilik açıklamalarını görüntüle."
+        icon={<Ionicons color={colors.primary} name="settings-outline" size={27} />}
+        title="Ayarlar"
+      />
 
       <View style={styles.section}>
         <SectionHeader title="Anlat Hoca" />
@@ -116,9 +116,6 @@ export function SettingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  header: {
-    gap: spacing.sm,
-  },
   section: {
     gap: spacing.lg,
   },

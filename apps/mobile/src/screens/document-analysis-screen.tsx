@@ -1,3 +1,4 @@
+import { OwlLoader } from "@/components/owl-loader";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import {
   documentIdSchema,
@@ -5,7 +6,7 @@ import {
 } from "@anlat-hoca/contracts";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 import { ApiClientError, getDocumentAnalysis } from "@/api";
 import {
@@ -86,13 +87,8 @@ export function DocumentAnalysisScreen() {
         contentContainerStyle={styles.centered}
         edges={["left", "right", "bottom"]}
       >
-        <ActivityIndicator color={colors.primary} size="large" />
-        <View style={styles.centerCopy}>
-          <AppText variant="heading3">Analiz yükleniyor</AppText>
-          <AppText tone="muted">
-            Kaydedilmiş belge analizi hazırlanıyor.
-          </AppText>
-        </View>
+        <OwlLoader color={colors.primary} size="large" accessibilityLabel="Analiz yükleniyor" />
+
       </ScreenContainer>
     );
   }

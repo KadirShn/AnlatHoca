@@ -1,9 +1,9 @@
+import { OwlLoader } from "@/components/owl-loader";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { lessonIdSchema, type Lesson } from "@anlat-hoca/contracts";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  ActivityIndicator,
   FlatList,
   Pressable,
   StyleSheet,
@@ -271,11 +271,8 @@ function PresentationLoadingState() {
       contentContainerStyle={styles.centered}
       edges={["top", "left", "right", "bottom"]}
     >
-      <ActivityIndicator color={colors.primary} size="large" />
-      <View accessibilityLiveRegion="polite" style={styles.centerCopy}>
-        <AppText variant="heading3">Sunum açılıyor...</AppText>
-        <AppText tone="muted">Kaydedilmiş ders içeriği yükleniyor.</AppText>
-      </View>
+      <OwlLoader color={colors.primary} size="large" accessibilityLabel="Sunum açılıyor..." />
+
     </ScreenContainer>
   );
 }

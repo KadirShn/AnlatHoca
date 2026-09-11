@@ -1,15 +1,22 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Tabs } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { colors, spacing, typography } from "@/theme";
 
 export default function TabLayout() {
+  const insets = useSafeAreaInsets();
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: colors.primary,
+        tabBarActiveTintColor: colors.primaryDark,
         tabBarInactiveTintColor: colors.textMuted,
+        tabBarActiveBackgroundColor: colors.primarySoftMuted,
+        tabBarItemStyle: {
+          borderRadius: 16,
+          marginHorizontal: spacing.xs,
+        },
         tabBarLabelStyle: {
           fontSize: typography.caption.fontSize,
           fontWeight: typography.caption.fontWeight,
@@ -17,6 +24,9 @@ export default function TabLayout() {
         tabBarStyle: {
           backgroundColor: colors.surface,
           borderTopColor: colors.border,
+          borderTopWidth: 1,
+          height: 64 + Math.max(insets.bottom, spacing.sm),
+          paddingBottom: Math.max(insets.bottom, spacing.sm),
           paddingTop: spacing.sm,
         },
       }}
@@ -25,8 +35,8 @@ export default function TabLayout() {
         name="index"
         options={{
           tabBarAccessibilityLabel: "Ana Sayfa sekmesi",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons color={color} name="home" size={size} />
+          tabBarIcon: ({ color, focused, size }) => (
+            <Ionicons color={color} name={focused ? "home" : "home-outline"} size={size} />
           ),
           title: "Ana Sayfa",
         }}
@@ -35,8 +45,8 @@ export default function TabLayout() {
         name="library"
         options={{
           tabBarAccessibilityLabel: "Kütüphane sekmesi",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons color={color} name="library" size={size} />
+          tabBarIcon: ({ color, focused, size }) => (
+            <Ionicons color={color} name={focused ? "library" : "library-outline"} size={size} />
           ),
           title: "Kütüphane",
         }}
@@ -45,8 +55,8 @@ export default function TabLayout() {
         name="settings"
         options={{
           tabBarAccessibilityLabel: "Ayarlar sekmesi",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons color={color} name="settings" size={size} />
+          tabBarIcon: ({ color, focused, size }) => (
+            <Ionicons color={color} name={focused ? "settings" : "settings-outline"} size={size} />
           ),
           title: "Ayarlar",
         }}

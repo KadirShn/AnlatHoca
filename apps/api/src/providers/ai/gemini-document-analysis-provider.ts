@@ -12,7 +12,7 @@ import {
   type GeminiFetchImplementation,
 } from "./gemini-file-readiness";
 
-const GENERATION_TIMEOUT_MS = 75_000;
+const GENERATION_TIMEOUT_MS = 150_000;
 
 export class GeminiDocumentAnalysisProvider
   implements DocumentAnalysisProvider
@@ -24,6 +24,7 @@ export class GeminiDocumentAnalysisProvider
       input,
       init,
     ) => fetch(input, init),
+    private readonly generationTimeoutMs = GENERATION_TIMEOUT_MS,
   ) {}
 
   async analyzeDocument(
@@ -47,7 +48,7 @@ export class GeminiDocumentAnalysisProvider
     const controller = new AbortController();
     const timeout = setTimeout(
       () => controller.abort(),
-      GENERATION_TIMEOUT_MS,
+      this.generationTimeoutMs,
     );
 
     try {

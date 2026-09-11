@@ -1,3 +1,4 @@
+import { OwlLoader } from "@/components/owl-loader";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import {
   examPackIdSchema,
@@ -7,7 +8,6 @@ import {
 import { type Href, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  ActivityIndicator,
   Linking,
   Modal,
   Pressable,
@@ -80,8 +80,7 @@ export function ExamSubjectInsightsScreen() {
     <ScreenContainer edges={["left", "right", "bottom"]}>
       {!insights && !visibleError ? (
         <View accessibilityLiveRegion="polite" style={styles.status}>
-          <ActivityIndicator color={colors.primary} size="large" />
-          <AppText tone="muted">Geçmiş veriler yükleniyor.</AppText>
+          <OwlLoader color={colors.primary} size="large" accessibilityLabel="Geçmiş veriler yükleniyor." />
         </View>
       ) : null}
 

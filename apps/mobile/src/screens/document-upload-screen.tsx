@@ -4,6 +4,7 @@ import { StyleSheet, View } from "react-native";
 
 import {
   AppButton,
+  PageIntro,
   AppText,
   DocumentPickerCard,
   InlineMessage,
@@ -98,13 +99,10 @@ export function DocumentUploadScreen() {
 
   return (
     <ScreenContainer edges={["left", "right", "bottom"]}>
-      <View style={styles.intro}>
-        <AppText variant="heading2">Notlarını derse dönüştür</AppText>
-        <AppText tone="muted">
-          Notlarını yükle, Anlat Hoca senin için çalışılabilir bir derse
-          dönüştürsün.
-        </AppText>
-      </View>
+      <PageIntro
+        title="Notların, yeni bir başlangıç."
+        description="Bir PDF seç. İçindeki konuları birlikte anlaşılır bir derse dönüştürelim."
+      />
 
       {selectedDocument ? (
         <SelectedDocumentCard
@@ -132,16 +130,6 @@ export function DocumentUploadScreen() {
           loading={isUploading}
           onPress={() => void handleContinue()}
         />
-        {isUploading ? (
-          <AppText
-            accessibilityLiveRegion="polite"
-            style={styles.footerCopy}
-            tone="muted"
-            variant="caption"
-          >
-            PDF güvenli şekilde aktarılıyor...
-          </AppText>
-        ) : null}
         <AppText
           selectable
           tone="muted"
@@ -182,7 +170,7 @@ function getUploadErrorMessage(error: unknown): string {
   }
 
   if (error.kind === "configuration") {
-    return "Çevrim içi hizmete şu anda ulaşılamıyor.";
+    return "Çevrimiçi hizmete şu anda ulaşılamıyor.";
   }
 
   switch (error.serverCode) {

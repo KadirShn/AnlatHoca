@@ -1,3 +1,4 @@
+import { OwlLoader } from "@/components/owl-loader";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import type {
   LibraryDocumentSummary,
@@ -9,7 +10,6 @@ import {
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
-  ActivityIndicator,
   FlatList,
   Pressable,
   RefreshControl,
@@ -21,10 +21,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import {
   AppButton,
   AppText,
+  BrandBackdrop,
   EmptyState,
   InlineMessage,
   LibraryDocumentCard,
   LibraryLessonCard,
+  PageIntro,
 } from "@/components";
 import { useLibraryData } from "@/hooks/use-library-data";
 import { colors, radius, spacing } from "@/theme";
@@ -82,6 +84,7 @@ export function LibraryScreen() {
 
   return (
     <SafeAreaView edges={["top", "left", "right"]} style={styles.safeArea}>
+      <BrandBackdrop />
       <FlatList
         contentContainerStyle={[
           styles.content,
@@ -102,12 +105,11 @@ export function LibraryScreen() {
         }
         ListHeaderComponent={
           <View style={styles.headerArea}>
-            <View style={styles.header}>
-              <AppText variant="heading1">Kütüphane</AppText>
-              <AppText tone="muted">
-                Kaydettiğin derslere ve yüklediğin belgelere yeniden ulaş.
-              </AppText>
-            </View>
+            <PageIntro
+              description="Kaydettiğin derslere ve yüklediğin belgelere yeniden ulaş."
+              icon={<Ionicons color={colors.primary} name="library" size={26} />}
+              title="Kütüphane"
+            />
             <View
               accessibilityLabel="Kütüphane bölümleri"
               accessibilityRole="tablist"
@@ -187,8 +189,7 @@ function LibraryEmptyContent({
   if (isLoading) {
     return (
       <View accessibilityLiveRegion="polite" style={styles.status}>
-        <ActivityIndicator color={colors.primary} size="large" />
-        <AppText tone="muted">Kütüphane yükleniyor.</AppText>
+        <OwlLoader color={colors.primary} size="large" accessibilityLabel="Kütüphane yükleniyor." />
       </View>
     );
   }
@@ -229,6 +230,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
+    alignSelf: "center",
+    width: "100%",
+    maxWidth: 780,
     paddingBottom: spacing.xxxl,
     paddingHorizontal: spacing.xl,
     paddingTop: spacing.lg,
@@ -240,13 +244,12 @@ const styles = StyleSheet.create({
     gap: spacing.lg,
     paddingBottom: spacing.xxl,
   },
-  header: {
-    gap: spacing.sm,
-  },
   tabs: {
-    backgroundColor: colors.surfaceMuted,
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
     borderCurve: "continuous",
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
+    borderWidth: 1,
     flexDirection: "row",
     gap: spacing.xs,
     padding: spacing.xs,
@@ -261,7 +264,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
   },
   selectedTab: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.primaryDark,
+    boxShadow: "0 4px 10px rgba(22, 163, 74, 0.18)",
   },
   pressedTab: {
     opacity: 0.78,

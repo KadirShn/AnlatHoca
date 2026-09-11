@@ -2,7 +2,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import type { LibraryLessonSummary } from "@anlat-hoca/contracts";
 import { Pressable, StyleSheet, View } from "react-native";
 
-import { colors, radius, spacing } from "@/theme";
+import { colors, radius, shadows, spacing } from "@/theme";
 import { formatLibraryDate } from "@/utils/format-library-date";
 
 import { AppText } from "./app-text";
@@ -35,7 +35,7 @@ export function LibraryLessonCard({
     >
       <View style={styles.heading}>
         <View style={styles.icon}>
-          <Ionicons color={colors.primary} name="school-outline" size={23} />
+          <Ionicons color={colors.textOnPrimary} name="book-outline" size={23} />
         </View>
         <View style={styles.headingCopy}>
           <AppText selectable variant="heading3">
@@ -70,7 +70,7 @@ function Metadata({
   return (
     <View style={styles.metadata}>
       <Ionicons color={colors.textMuted} name={icon} size={16} />
-      <AppText tone="muted" variant="caption">
+      <AppText tone="muted" variant="caption" style={styles.metadataText}>
         {label}
       </AppText>
     </View>
@@ -79,10 +79,11 @@ function Metadata({
 
 const styles = StyleSheet.create({
   card: {
+    ...shadows.card,
     backgroundColor: colors.surface,
     borderColor: colors.border,
     borderCurve: "continuous",
-    borderRadius: radius.lg,
+    borderRadius: radius.xl,
     borderWidth: 1,
     gap: spacing.md,
     padding: spacing.lg,
@@ -98,7 +99,7 @@ const styles = StyleSheet.create({
   },
   icon: {
     alignItems: "center",
-    backgroundColor: colors.primarySoft,
+    backgroundColor: colors.primaryDeep,
     borderRadius: radius.md,
     height: 42,
     justifyContent: "center",
@@ -118,5 +119,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flexDirection: "row",
     gap: spacing.xs,
+    backgroundColor: colors.surfaceMuted,
+    borderRadius: radius.sm,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    flexShrink: 1,
+  },
+  metadataText: {
+    flexShrink: 1,
   },
 });

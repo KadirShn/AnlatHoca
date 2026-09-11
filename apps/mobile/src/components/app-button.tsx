@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 import {
-  ActivityIndicator,
   Pressable,
   StyleSheet,
   View,
@@ -11,8 +10,9 @@ import {
 import { colors, radius, spacing } from "@/theme";
 
 import { AppText } from "./app-text";
+import { OwlLoader } from "./owl-loader";
 
-type AppButtonVariant = "primary" | "secondary" | "ghost" | "danger";
+type AppButtonVariant = "primary" | "secondary" | "ghost" | "danger" | "accent";
 
 interface AppButtonProps {
   label: string;
@@ -49,24 +49,27 @@ export function AppButton({
         styles.base,
         selectedVariant.container,
         pressed && selectedVariant.pressed,
-        isDisabled && styles.disabled,
+        disabled && !loading && styles.disabled,
         style,
       ]}
     >
-      {loading ? (
-        <ActivityIndicator color={selectedVariant.spinnerColor} />
-      ) : (
         <View style={styles.content}>
-          {leftIcon}
+          {loading ? (
+            <View pointerEvents="none" style={styles.loadingOverlay}>
+              <OwlLoader color={selectedVariant.spinnerColor} decorative />
+            </View>
+          ) : leftIcon}
           <AppText
+            accessible={!loading}
+            accessibilityElementsHidden={loading}
+            importantForAccessibility={loading ? "no-hide-descendants" : "auto"}
             variant="button"
             tone={selectedVariant.textTone}
-            style={isDisabled ? styles.disabledText : undefined}
+            style={[styles.label, loading && styles.hiddenLabel, disabled && !loading && styles.disabledText]}
           >
             {label}
           </AppText>
         </View>
-      )}
     </Pressable>
   );
 }
@@ -75,11 +78,17 @@ const styles = StyleSheet.create({
   base: {
     alignItems: "center",
     borderCurve: "continuous",
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     justifyContent: "center",
-    minHeight: 48,
+    minHeight: 54,
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.md,
+  },
+  hiddenLabel: { opacity: 0 },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFill,
+    alignItems: "center",
+    justifyContent: "center",
   },
   content: {
     alignItems: "center",
@@ -88,14 +97,21 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   primary: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.primaryDark,
+    boxShadow: "0 6px 16px rgba(22, 163, 74, 0.20)",
+  },
+  accent: {
+    backgroundColor: colors.accent,
+  },
+  accentPressed: {
+    backgroundColor: colors.accentPressed,
   },
   primaryPressed: {
-    backgroundColor: colors.primaryPressed,
+    backgroundColor: colors.primaryDeep,
   },
   secondary: {
-    backgroundColor: colors.primarySoft,
-    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    borderColor: colors.primary,
     borderWidth: 1,
   },
   secondaryPressed: {
@@ -114,6 +130,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#991B1B",
   },
   disabled: {
+    boxShadow: "none",
     backgroundColor: colors.disabled,
     borderColor: colors.disabled,
     opacity: 0.72,
@@ -121,9 +138,19 @@ const styles = StyleSheet.create({
   disabledText: {
     color: colors.disabledText,
   },
+  label: {
+    flexShrink: 1,
+    textAlign: "center",
+  },
 });
 
 const variantStyles = {
+  accent: {
+    container: styles.accent,
+    pressed: styles.accentPressed,
+    textTone: "default" as const,
+    spinnerColor: colors.primaryDeep,
+  },
   primary: {
     container: styles.primary,
     pressed: styles.primaryPressed,

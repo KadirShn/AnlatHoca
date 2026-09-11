@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { Pressable, StyleSheet, View } from "react-native";
 
 import { colors, radius, shadows, spacing } from "@/theme";
@@ -12,6 +13,7 @@ interface FeatureCardProps {
   onPress: () => void;
   badge?: string;
   accessibilityLabel?: string;
+  variant?: "study" | "exam";
 }
 
 export function FeatureCard({
@@ -21,6 +23,7 @@ export function FeatureCard({
   onPress,
   badge,
   accessibilityLabel,
+  variant = "study",
 }: FeatureCardProps) {
   return (
     <Pressable
@@ -28,9 +31,9 @@ export function FeatureCard({
       accessibilityLabel={accessibilityLabel ?? title}
       accessibilityRole="button"
       onPress={onPress}
-      style={({ pressed }) => [styles.card, pressed && styles.pressed]}
+      style={({ pressed }) => [styles.card, variant === "exam" && styles.examCard, pressed && styles.pressed]}
     >
-      <View style={styles.iconContainer}>{icon}</View>
+      <View style={[styles.iconContainer, variant === "exam" && styles.examIcon]}>{icon}</View>
       <View style={styles.copy}>
         <View style={styles.titleRow}>
           <AppText variant="heading3" style={styles.title}>
@@ -45,6 +48,12 @@ export function FeatureCard({
           ) : null}
         </View>
         <AppText tone="muted">{description}</AppText>
+        <View style={styles.action}>
+          <AppText variant="caption" tone="primary">
+            {variant === "exam" ? "Paketleri keşfet" : "PDF ile başla"}
+          </AppText>
+          <Ionicons accessible={false} color={colors.primaryDark} name="arrow-forward" size={17} />
+        </View>
       </View>
     </Pressable>
   );
@@ -57,14 +66,28 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderColor: colors.border,
     borderCurve: "continuous",
-    borderRadius: radius.lg,
+    borderRadius: radius.xl,
     borderWidth: 1,
     flexDirection: "row",
     gap: spacing.lg,
-    padding: spacing.lg,
+    padding: spacing.xl,
+  },
+  examCard: {
+    backgroundColor: colors.accentSoft,
+    borderTopLeftRadius: radius.xl,
+  },
+  examIcon: {
+    backgroundColor: colors.accent,
+  },
+  action: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: spacing.sm,
+    paddingTop: spacing.xs,
   },
   pressed: {
-    backgroundColor: colors.surfaceMuted,
+    backgroundColor: colors.primarySoftMuted,
+    borderColor: colors.primary,
     transform: [{ scale: 0.99 }],
   },
   iconContainer: {
@@ -90,7 +113,7 @@ const styles = StyleSheet.create({
     flexShrink: 1,
   },
   badge: {
-    backgroundColor: colors.primarySoft,
+    backgroundColor: colors.surfaceMuted,
     borderRadius: radius.full,
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,

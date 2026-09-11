@@ -41,6 +41,7 @@ import { D1TeacherMessageRepository } from "./data/teacher-message-repository";
 import { D1TeacherThreadRepository } from "./data/teacher-thread-repository";
 import { GeminiFilesProvider } from "./providers/files/gemini-files-provider";
 import { GeminiDocumentAnalysisProvider } from "./providers/ai/gemini-document-analysis-provider";
+import { DocumentAnalysisProviderError } from "./providers/ai/document-analysis-provider";
 import { GeminiLessonGenerationProvider } from "./providers/ai/gemini-lesson-generation-provider";
 import { GeminiQuizGenerationProvider } from "./providers/ai/gemini-quiz-generation-provider";
 import { GeminiTeacherAnswerProvider } from "./providers/ai/gemini-teacher-answer-provider";
@@ -93,6 +94,7 @@ const errorResponse = (
 ): ApiErrorResponse => ({ error: { code, message } });
 
 const logOperationalError = (operation: string, error: unknown) => {
+  const cause = error instanceof Error ? error.cause : undefined;
   console.error(
     JSON.stringify({
       event: "operation_failed",
@@ -100,6 +102,17 @@ const logOperationalError = (operation: string, error: unknown) => {
       errorName: error instanceof Error ? error.name : "UnknownError",
       errorMessage:
         error instanceof Error ? error.message : "Unknown database error",
+      errorCode:
+        typeof error === "object" &&
+        error !== null &&
+        "code" in error &&
+        typeof error.code === "string"
+          ? error.code
+          : undefined,
+      providerErrorKind:
+        cause instanceof DocumentAnalysisProviderError
+          ? cause.kind
+          : undefined,
     }),
   );
 };

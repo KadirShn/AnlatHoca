@@ -6,7 +6,7 @@ import {
   type AppBootstrapState,
   useAppBootstrap,
 } from "@/providers/app-bootstrap-provider";
-import { colors, radius, spacing } from "@/theme";
+import { colors, radius, shadows, spacing } from "@/theme";
 
 import { AppButton } from "./app-button";
 import { AppText } from "./app-text";
@@ -25,14 +25,14 @@ function getStatusPresentation(state: AppBootstrapState): StatusPresentation {
     case "initializing":
       return {
         title: "Bağlantı kontrol ediliyor",
-        description: "Çevrim içi özellikler hazırlanıyor.",
+        description: "Çevrimiçi özellikler hazırlanıyor.",
         icon: "time-outline",
         color: colors.accent,
       };
     case "ready":
       return {
-        title: "Çevrim içi",
-        description: "Çevrim içi özellikler kullanılabilir.",
+        title: "Çevrimiçi",
+        description: "Çevrimiçi özellikler kullanılabilir.",
         icon: "checkmark-circle-outline",
         color: colors.success,
       };
@@ -48,7 +48,7 @@ function getStatusPresentation(state: AppBootstrapState): StatusPresentation {
       };
     case "configurationError":
       return {
-        title: "Çevrim içi özellikler kullanılamıyor",
+        title: "Çevrimiçi özellikler kullanılamıyor",
         description: "Uygulama desteğine başvurup daha sonra tekrar dene.",
         icon: "warning-outline",
         color: colors.accent,
@@ -95,10 +95,11 @@ export function ConnectionStatusCard() {
 
 const styles = StyleSheet.create({
   card: {
+    ...shadows.card,
     backgroundColor: colors.surface,
     borderColor: colors.border,
     borderCurve: "continuous",
-    borderRadius: radius.lg,
+    borderRadius: radius.xl,
     borderWidth: 1,
     gap: spacing.lg,
     padding: spacing.lg,

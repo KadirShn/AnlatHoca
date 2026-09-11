@@ -319,6 +319,15 @@ function mapProviderError(
     );
   }
 
+  if (error.kind === "timeout") {
+    return new DocumentAnalysisError(
+      "UPSTREAM_ERROR",
+      502,
+      "Belge analizi beklenenden uzun sürdü. Tekrar deneyebilirsin.",
+      error,
+    );
+  }
+
   return new DocumentAnalysisError(
     "UPSTREAM_ERROR",
     502,
