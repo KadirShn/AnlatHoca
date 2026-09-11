@@ -1,8 +1,28 @@
 # Anlat Hoca
 
-Anlat Hoca is an AI-powered mobile study application being built with Expo and Cloudflare Workers.
+<p align="center">
+  <img src="docs/release/assets/google-play/feature-graphic.png" alt="Anlat Hoca — Daha iyi öğren. Daha ileri git." width="100%" />
+</p>
 
-The repository supports PDF selection and transfer, temporary Gemini Files preparation, real AI document analysis, topic extraction, time-aware 10/30/60 minute lesson generation, persistent D1 caching, interactive presentation mode, lesson-grounded multiple-choice quizzes, persisted lesson-scoped **Hocaya Sor** conversations, an installation-scoped Library and deletion flow, and a versioned prepared-exam-pack catalog foundation. The Worker and D1 backend are deployed to Cloudflare production. Voice/TTS, prepared exam lessons, authentication, permanent raw-file storage, and public store distribution are not implemented.
+<p align="center">
+  PDF ders notlarını kişisel bir çalışma deneyimine dönüştüren mobil öğrenme asistanı.
+</p>
+
+Anlat Hoca V1, **Google Play yayın hazırlığı** aşamasındadır. Production mobil uygulaması Cloudflare üzerinde çalışan API'ye bağlanır.
+
+Uygulama; PDF yükleme ve belge analizi, konu çıkarımı, 10/30/60 dakikalık dersler, sunum modu, ders kapsamlı quizler, **Hocaya Sor**, Kütüphane, KPSS geçmiş örnek gözlemleri ve kişisel çalışma planları sunar. Worker ve D1 backend'i Cloudflare production ortamında çalışır. Sesli anlatım/TTS, kullanıcı hesabı ve kalıcı ham PDF depolama V1 kapsamında değildir.
+
+## Uygulamadan görüntüler
+
+| Ana Sayfa | Sınava Hazırlan |
+| --- | --- |
+| <img src="docs/release/assets/google-play/screenshots/01-ana-sayfa.png" alt="Anlat Hoca ana sayfası" width="360" /> | <img src="docs/release/assets/google-play/screenshots/02-sinava-hazirlan.png" alt="Sınava Hazırlan paketleri" width="360" /> |
+| **KPSS Coğrafya** | **Çalışma süresi seçimi** |
+| <img src="docs/release/assets/google-play/screenshots/03-kpss-cografya.png" alt="KPSS Coğrafya geçmiş sınav gözlemleri" width="360" /> | <img src="docs/release/assets/google-play/screenshots/04-calisma-plani-secimi.png" alt="Çalışma planı süre seçimi" width="360" /> |
+| **Kişisel çalışma planı** | **Kütüphane** |
+| <img src="docs/release/assets/google-play/screenshots/05-kisisel-calisma-plani.png" alt="Kişisel çalışma planı" width="360" /> | <img src="docs/release/assets/google-play/screenshots/06-kutuphane.png" alt="Kayıtlı dersler kütüphanesi" width="360" /> |
+| **Ders görünümü** | **Sunum modu** |
+| <img src="docs/release/assets/google-play/screenshots/07-ders.png" alt="Ders görünümü" width="360" /> | <img src="docs/release/assets/google-play/screenshots/08-sunum-modu.png" alt="Ders sunum modu" width="360" /> |
 
 ## Technology stack
 
